@@ -19,45 +19,22 @@ import edu.ucsf.rbvi.cyBrowser.internal.model.CyBrowserManager;
 import edu.ucsf.rbvi.cyBrowser.internal.view.ResultsPanelBrowser;
 import edu.ucsf.rbvi.cyBrowser.internal.view.SwingBrowser;
 
-public class StartBrowserTask extends AbstractTask {
-
-	@Tunable (description="URL", gravity=1.0)
-	public String url;
+public class HideBrowserTask extends AbstractTask {
 
 	final CyServiceRegistrar registrar;
 	final CyBrowserManager manager;
-	final boolean dialog;
-  final CytoPanel cytoPanel = null;
 
-	public StartBrowserTask(CyServiceRegistrar registrar, CyBrowserManager manager, boolean dialog) {
+	public HideBrowserTask(CyServiceRegistrar registrar, CyBrowserManager manager) {
 		this.registrar = registrar;
 		this.manager = manager;
-		this.dialog = dialog;
 	}
 
 	public void run(TaskMonitor monitor) {
-		SwingUtilities.invokeLater(new Runnable() {
-			public void run() {
-				if (dialog) {
-					SwingBrowser browser = new SwingBrowser(registrar);
-					browser.setVisible(true);
-					if (url != null && url.length() > 3) {
-						browser.loadURL(url);
-					}
-				} else {
-					ResultsPanelBrowser browser = new ResultsPanelBrowser(registrar, null);
-					if (url != null && url.length() > 3) {
-						browser.loadURL(url);
-					}
-					manager.registerCytoPanel(browser);
-				}
-			}
-		});
-
+		manager.unregisterCytoPanel();
 	}
 
 	@ProvidesTitle
 	public String getTitle() {
-		return "Starting Cytoscape Web Browser";
+		return "Hiding Cytoscape Web Browser";
 	}
 }
