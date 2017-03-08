@@ -24,6 +24,9 @@ public class StartBrowserTask extends AbstractTask {
 	@Tunable (description="URL", gravity=1.0)
 	public String url;
 
+	@Tunable (description="HTML Text", context="nogui")
+	public String text;
+
 	final CyServiceRegistrar registrar;
 	final CyBrowserManager manager;
 	final boolean dialog;
@@ -48,6 +51,8 @@ public class StartBrowserTask extends AbstractTask {
 					ResultsPanelBrowser browser = new ResultsPanelBrowser(registrar, null);
 					if (url != null && url.length() > 3) {
 						browser.loadURL(url);
+					} else if (text != null) {
+						browser.loadText(text);
 					}
 					manager.registerCytoPanel(browser);
 				}

@@ -32,6 +32,10 @@ public class ResultsPanelBrowser implements CytoPanelComponent2 {
 		panel.loadURL(url);
 	}
 
+	public void loadText(final String text) {
+		panel.loadText(text);
+	}
+
 	@Override
 	public String getIdentifier() {
 		return this.getClass().getName();

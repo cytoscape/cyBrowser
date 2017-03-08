@@ -27,6 +27,7 @@ import java.net.URL;
 
 import org.cytoscape.command.CommandExecutorTaskFactory;
 import org.cytoscape.service.util.CyServiceRegistrar;
+import org.cytoscape.util.swing.IconManager;
 import org.cytoscape.work.FinishStatus;
 import org.cytoscape.work.ObservableTask;
 import org.cytoscape.work.SynchronousTaskManager;
@@ -47,9 +48,10 @@ public class SwingPanel extends JPanel implements TaskObserver {
 
 	public static final String EVENT_TYPE_CLICK = "click";
 
-	private final JButton btnGo = new JButton("Go");
 	private final JTextField txtURL = new JTextField();
 	private final JProgressBar progressBar = new JProgressBar();
+	private JButton btnBack = null;
+	private JButton btnForward = null;
 
 	private final CyServiceRegistrar registrar;
 	private final CommandExecutorTaskFactory commandTaskFactory;
@@ -67,6 +69,7 @@ public class SwingPanel extends JPanel implements TaskObserver {
 		parent = parentDialog;
 		panel = this;
 		initComponents();
+		Platform.setImplicitExit(false);
 
 		// Get the services we'll need
 		commandTaskFactory = registrar.getService(CommandExecutorTaskFactory.class);
@@ -85,16 +88,31 @@ public class SwingPanel extends JPanel implements TaskObserver {
 				}
 			};
 	 
-			btnGo.addActionListener(al);
 			txtURL.addActionListener(al);
-  
+
 			progressBar.setPreferredSize(new Dimension(150, 18));
 			progressBar.setStringPainted(true);
   
 			JPanel topBar = new JPanel(new BorderLayout(5, 0));
 			topBar.setBorder(BorderFactory.createEmptyBorder(3, 5, 3, 5));
+			{
+				JPanel leftButtonPanel = new JPanel(new FlowLayout());
+				btnBack = createHistoryButton(IconManager.ICON_ARROW_LEFT, -1);
+				btnForward = createHistoryButton(IconManager.ICON_ARROW_RIGHT, 1);
+				leftButtonPanel.add(btnBack);
+				leftButtonPanel.add(btnForward);
+				topBar.add(leftButtonPanel, BorderLayout.WEST);
+			}
 			topBar.add(txtURL, BorderLayout.CENTER);
-			topBar.add(btnGo, BorderLayout.EAST);
+			{
+				JPanel rightButtonPanel = new JPanel(new FlowLayout());
+				JButton btnGo = new JButton("Go");
+				btnGo.addActionListener(al);
+				JButton btnBug = createBugButton();
+				rightButtonPanel.add(btnGo);
+				rightButtonPanel.add(btnBug);
+				topBar.add(rightButtonPanel, BorderLayout.EAST);
+			}
  
 			JPanel statusBar = new JPanel(new BorderLayout(5, 0));
 			statusBar.setBorder(BorderFactory.createEmptyBorder(3, 5, 3, 5));
@@ -105,6 +123,47 @@ public class SwingPanel extends JPanel implements TaskObserver {
 			add(statusBar, BorderLayout.SOUTH);
 		}
 		add(jfxPanel, BorderLayout.CENTER);
+	}
+
+	private JButton createBugButton() {
+		JButton btn = new JButton(IconManager.ICON_BUG);
+		btn.setFont(registrar.getService(IconManager.class).getIconFont(14.0f));
+		btn.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				Platform.runLater(new Runnable() {
+					@Override
+					public void run() {
+						engine.executeScript("if (!document.getElementById('FirebugLite')){E = document['createElement' + 'NS'] && document.documentElement.namespaceURI;E = E ? document['createElement' + 'NS'](E, 'script') : document['createElement']('script');E['setAttribute']('id', 'FirebugLite');E['setAttribute']('src', 'https://getfirebug.com/' + 'firebug-lite.js' + '#startOpened');E['setAttribute']('FirebugLite', '4');(document['getElementsByTagName']('head')[0] || document['getElementsByTagName']('body')[0]).appendChild(E);E = new Image;E['setAttribute']('src', 'https://getfirebug.com/' + '#startOpened');}"); 
+					}
+				});
+			}
+		});
+		return btn;
+	}
+
+	private JButton createHistoryButton(String icon, int index) {
+		JButton btn = new JButton(icon);
+		btn.setFont(registrar.getService(IconManager.class).getIconFont(14.0f));
+		btn.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				Platform.runLater(new Runnable() {
+					@Override
+					public void run() {
+						engine.getHistory().go(index);
+						txtURL.setText(getUrlFromHistory());
+						enableControls();
+					}
+				});
+			}
+		});
+		btn.setEnabled(false);
+		return btn;
+	}
+
+	private String getUrlFromHistory() {
+		return engine.getHistory().getEntries().get(engine.getHistory().getCurrentIndex()).getUrl();
 	}
  
 	private void createScene() {
@@ -189,6 +248,13 @@ public class SwingPanel extends JPanel implements TaskObserver {
 				engine.getLoadWorker().stateProperty().addListener(new ChangeListener<State>() {
 					@Override
 					public void changed(ObservableValue ov, State oldState, State newState) {
+						/*
+						System.out.println("webEngine result "+newState.toString());
+						if (engine.getLoadWorker().getException() != null && newState == State.FAILED){
+							String exceptionMessage = ", "+engine.getLoadWorker().getException().toString();
+							System.out.println("webEngine failed: "+exceptionMessage);
+						}
+						*/
 						if (newState == Worker.State.SUCCEEDED) {
 							EventListener listener = new EventListener() {
 								@Override
@@ -196,7 +262,7 @@ public class SwingPanel extends JPanel implements TaskObserver {
 									String domEventType = ev.getType();
 									if (domEventType.equals(EVENT_TYPE_CLICK)) {
 										String href = ((Element)ev.getTarget()).getAttribute("href");
-										if (href.startsWith("cycmd:")) {
+										if (href != null && href.startsWith("cycmd:")) {
 											String command = href.substring("cycmd:".length());
 											executeCommand(command);
 										}
@@ -209,6 +275,7 @@ public class SwingPanel extends JPanel implements TaskObserver {
 							for (int i = 0; i < nodeList.getLength(); i++) {
 								((EventTarget) nodeList.item(i)).addEventListener(EVENT_TYPE_CLICK, listener, false);
 							}
+							enableControls();
 						}
 					}
 				});
@@ -217,6 +284,15 @@ public class SwingPanel extends JPanel implements TaskObserver {
 		});
 	}
  
+	public void loadText(final String text) {
+		Platform.runLater(new Runnable() {
+			@Override 
+			public void run() {
+				engine.loadContent(text);
+			}
+		});
+	}
+
 	public void loadURL(final String url) {
 		Platform.runLater(new Runnable() {
 			@Override 
@@ -228,8 +304,24 @@ public class SwingPanel extends JPanel implements TaskObserver {
 				}
  
 				engine.load(tmp);
+				enableControls();
 			}
 		});
+	}
+
+	private void enableControls() {
+		if (btnBack == null || btnForward == null)
+			return;
+
+		int index = engine.getHistory().getCurrentIndex();
+		if (index > 0)
+			btnBack.setEnabled(true);
+		else
+			btnBack.setEnabled(false);
+		if (index < (engine.getHistory().getEntries().size()-1))
+			btnForward.setEnabled(true);
+		else
+			btnForward.setEnabled(false);
 	}
 
 	@Override

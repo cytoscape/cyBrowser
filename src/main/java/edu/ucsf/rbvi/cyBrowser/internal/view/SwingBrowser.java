@@ -25,4 +25,8 @@ public class SwingBrowser extends JDialog {
 	public void loadURL(final String url) {
 		panel.loadURL(url);
 	}
+
+	public void loadText(final String text) {
+		panel.loadText(text);
+	}
 }
