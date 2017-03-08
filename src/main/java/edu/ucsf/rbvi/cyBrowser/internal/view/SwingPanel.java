@@ -325,19 +325,28 @@ public class SwingPanel extends JPanel implements TaskObserver {
 	}
 
 	@Override
-	public void allFinished(FinishStatus finishStatus) {}
+	public void allFinished(FinishStatus finishStatus) {
+		// System.out.println("All tasks finished");
+	}
 
 	@Override
 	public void taskFinished(ObservableTask task) {
 		String results = task.getResults(String.class);
+		// System.out.println("Task "+task+" finished: "+results);
 		logger.info("CyBrowser: results: '"+results+"'");
 	}
 
 	private void executeCommand(String command) {
-		System.out.println("command = "+command);
+		TaskObserver observer = this;
+		// System.out.println("command = "+command);
 		logger.info("CyBrowser: executing command: '"+command+"'");
-		TaskIterator commandTasks = commandTaskFactory.createTaskIterator(this, command);
-		taskManager.execute(commandTasks);
+		SwingUtilities.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				TaskIterator commandTasks = commandTaskFactory.createTaskIterator(observer, command);
+				taskManager.execute(commandTasks, observer);
+			}
+		});
 	}
 
 	private static String toURL(String str) {
