@@ -25,6 +25,8 @@ import java.awt.event.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import netscape.javascript.JSObject;
+
 import org.cytoscape.command.CommandExecutorTaskFactory;
 import org.cytoscape.service.util.CyServiceRegistrar;
 import org.cytoscape.util.swing.IconManager;
@@ -203,6 +205,7 @@ public class SwingPanel extends JPanel implements TaskObserver {
 				engine.locationProperty().addListener(new ChangeListener<String>() {
 					@Override
 					public void changed(ObservableValue<? extends String> ov, String oldValue, final String newValue) {
+						// System.out.println("location changed");
 						SwingUtilities.invokeLater(new Runnable() {
 							@Override 
 							public void run() {
@@ -256,9 +259,18 @@ public class SwingPanel extends JPanel implements TaskObserver {
 						}
 						*/
 						if (newState == Worker.State.SUCCEEDED) {
+							// OK, set up our callback
+							JSObject jsobj = (JSObject) engine.executeScript("window");
+
+							// Set member for 'window' object
+							// In Javascript access: window.cybrowser...
+							jsobj.setMember("cybrowser", new Bridge());
+
+							// Now set up a listener for link click events
 							EventListener listener = new EventListener() {
 								@Override
 								public void handleEvent(Event ev) {
+									// System.out.println("Event");
 									String domEventType = ev.getType();
 									if (domEventType.equals(EVENT_TYPE_CLICK)) {
 										String href = ((Element)ev.getTarget()).getAttribute("href");
@@ -357,4 +369,11 @@ public class SwingPanel extends JPanel implements TaskObserver {
 		}
 	}
 
+	// This class provides methods that will be accessible from Javascript.
+	// Initially, the only method is the executeCyCommand method.
+	public class Bridge {
+		public void executeCyCommand(String command) {
+			executeCommand(command);
+		}
+	}
 }
