@@ -15,15 +15,36 @@ import javafx.concurrent.Worker.State;
 import javafx.embed.swing.JFXPanel;
 import javafx.event.EventHandler;
 import javafx.scene.Scene;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.Label;
+import javafx.scene.text.Text;
+import javafx.scene.text.TextAlignment;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebEvent;
 import javafx.scene.web.WebView;
+import javafx.util.Callback;
  
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.BorderLayout;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Optional;
+
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JProgressBar;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 
 import netscape.javascript.JSObject;
 
@@ -61,6 +82,7 @@ public class SwingPanel extends JPanel implements TaskObserver {
 	private final JDialog parent;
 	private final JPanel panel;
 	private final boolean showURL;
+	private String callbackMethod = null;
 
 	final Logger logger = Logger.getLogger(CyUserLog.NAME);
  
@@ -176,7 +198,7 @@ public class SwingPanel extends JPanel implements TaskObserver {
  
 				WebView view = new WebView();
 				engine = view.getEngine();
- 
+
 				engine.titleProperty().addListener(new ChangeListener<String>() {
 					@Override
 					public void changed(ObservableValue<? extends String> observable, String oldValue, final String newValue) {
@@ -190,6 +212,34 @@ public class SwingPanel extends JPanel implements TaskObserver {
 					}
 				});
  
+				engine.setOnAlert(new EventHandler<WebEvent<String>>() {
+					@Override 
+					public void handle(final WebEvent<String> event) {
+						Dialog<Void> alert = new Dialog<>();
+						alert.setTitle("CyBrowser Alert");
+						Label txt = new Label(event.getData());
+						txt.setStyle("-fx-text-alignment: center;");
+						// alert.getDialogPane().setContentText(event.getData());
+						alert.getDialogPane().setContent(txt);
+						alert.getDialogPane().getButtonTypes().add(ButtonType.OK);
+						alert.showAndWait();
+					}
+				});
+ 
+				engine.setConfirmHandler(new Callback<String,Boolean>() {
+					@Override 
+					public Boolean call(String message) {
+						Dialog<ButtonType> confirm = new Dialog<>();
+						confirm.setTitle("CyBrowser Confirmation");
+						confirm.getDialogPane().setContentText(message);
+						confirm.getDialogPane().getButtonTypes().addAll(ButtonType.YES, ButtonType.NO );
+						Optional<ButtonType> result = confirm.showAndWait();
+						if (result.isPresent() && result.get() == ButtonType.YES)
+							return true;
+						return false;
+					}
+				});
+
 				engine.setOnStatusChanged(new EventHandler<WebEvent<String>>() {
 					@Override 
 					public void handle(final WebEvent<String> event) {
@@ -204,7 +254,8 @@ public class SwingPanel extends JPanel implements TaskObserver {
  
 				engine.locationProperty().addListener(new ChangeListener<String>() {
 					@Override
-					public void changed(ObservableValue<? extends String> ov, String oldValue, final String newValue) {
+					public void changed(ObservableValue<? extends String> ov, 
+					                    String oldValue, final String newValue) {
 						// System.out.println("location changed");
 						SwingUtilities.invokeLater(new Runnable() {
 							@Override 
@@ -217,7 +268,8 @@ public class SwingPanel extends JPanel implements TaskObserver {
  
 				engine.getLoadWorker().workDoneProperty().addListener(new ChangeListener<Number>() {
 					@Override
-					public void changed(ObservableValue<? extends Number> observableValue, Number oldValue, final Number newValue) {
+					public void changed(ObservableValue<? extends Number> observableValue, 
+					                    Number oldValue, final Number newValue) {
 						SwingUtilities.invokeLater(new Runnable() {
 							@Override 
 							public void run() {
@@ -231,7 +283,8 @@ public class SwingPanel extends JPanel implements TaskObserver {
 						.exceptionProperty()
 						.addListener(new ChangeListener<Throwable>() {
  
-							public void changed(ObservableValue<? extends Throwable> o, Throwable old, final Throwable value) {
+							public void changed(ObservableValue<? extends Throwable> o, 
+							                    Throwable old, final Throwable value) {
 								if (engine.getLoadWorker().getState() == FAILED) {
 									SwingUtilities.invokeLater(new Runnable() {
 										@Override public void run() {
@@ -339,6 +392,7 @@ public class SwingPanel extends JPanel implements TaskObserver {
 	@Override
 	public void allFinished(FinishStatus finishStatus) {
 		// System.out.println("All tasks finished");
+		callbackMethod = null;
 	}
 
 	@Override
@@ -346,6 +400,21 @@ public class SwingPanel extends JPanel implements TaskObserver {
 		String results = task.getResults(String.class);
 		// System.out.println("Task "+task+" finished: "+results);
 		logger.info("CyBrowser: results: '"+results+"'");
+		if (callbackMethod != null) {
+			String cb = callbackMethod; // 
+			callbackMethod = null;
+			Platform.runLater(new Runnable() {
+				@Override public void run() {
+					// System.out.println("Executing: "+cb+"(`"+escape(results)+"`)");
+					// We need to use templated strings to preserve newlines
+					engine.executeScript(cb+"(`"+results+"`)");
+				}
+			});
+		}
+	}
+
+	private String escape(String str) {
+		return str.replaceAll("\n", "\\\n");
 	}
 
 	private void executeCommand(String command) {
@@ -374,6 +443,12 @@ public class SwingPanel extends JPanel implements TaskObserver {
 	public class Bridge {
 		public void executeCyCommand(String command) {
 			executeCommand(command);
+			callbackMethod = null;
+		}
+
+		public void executeCyCommandWithArg(String command, String callback) {
+			executeCommand(command);
+			callbackMethod = callback;
 		}
 	}
 }
