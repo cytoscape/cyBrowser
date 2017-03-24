@@ -10,7 +10,9 @@ import org.cytoscape.application.swing.CytoPanelComponent2;
 import org.cytoscape.application.swing.CytoPanelName;
 import org.cytoscape.service.util.CyServiceRegistrar;
 
-public class ResultsPanelBrowser implements CytoPanelComponent2 {
+import edu.ucsf.rbvi.cyBrowser.internal.model.CyBrowser;
+
+public class ResultsPanelBrowser implements CytoPanelComponent2, CyBrowser {
 
 	private final CyServiceRegistrar registrar;
 	private final SwingPanel panel;
@@ -19,7 +21,7 @@ public class ResultsPanelBrowser implements CytoPanelComponent2 {
 	public ResultsPanelBrowser(CyServiceRegistrar registrar, String title) {
 		super();
 		this.registrar = registrar;
-		panel = new SwingPanel(registrar, null, false);
+		panel = new SwingPanel(registrar, null, false, false);
 
 		if (title != null)
 			this.title = title;
@@ -50,7 +52,7 @@ public class ResultsPanelBrowser implements CytoPanelComponent2 {
 	public Icon getIcon() { return null; }
 
 	@Override
-	public String getTitle() { return "CyBrowser"; }
+	public String getTitle() { return title; }
 
 	@Override
 	public CytoPanelName getCytoPanelName() { return CytoPanelName.EAST; }

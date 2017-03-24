@@ -15,11 +15,15 @@ import org.cytoscape.work.TaskMonitor;
 import org.cytoscape.work.Tunable;
 
 
+import edu.ucsf.rbvi.cyBrowser.internal.model.CyBrowser;
 import edu.ucsf.rbvi.cyBrowser.internal.model.CyBrowserManager;
 import edu.ucsf.rbvi.cyBrowser.internal.view.ResultsPanelBrowser;
 import edu.ucsf.rbvi.cyBrowser.internal.view.SwingBrowser;
 
 public class HideBrowserTask extends AbstractTask {
+
+	@Tunable (description="Window ID", context="nogui")
+	public String id = null;
 
 	final CyServiceRegistrar registrar;
 	final CyBrowserManager manager;
@@ -30,7 +34,10 @@ public class HideBrowserTask extends AbstractTask {
 	}
 
 	public void run(TaskMonitor monitor) {
-		manager.unregisterCytoPanel();
+		CyBrowser browser = manager.getBrowser(id);
+		if (browser instanceof ResultsPanelBrowser)
+			manager.unregisterCytoPanel((ResultsPanelBrowser)browser);
+		manager.removeBrowser(id);
 	}
 
 	@ProvidesTitle

@@ -15,9 +15,13 @@ import javafx.concurrent.Worker.State;
 import javafx.embed.swing.JFXPanel;
 import javafx.event.EventHandler;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.scene.web.WebEngine;
@@ -82,16 +86,22 @@ public class SwingPanel extends JPanel implements TaskObserver {
 	private final JDialog parent;
 	private final JPanel panel;
 	private final boolean showURL;
+	private final boolean showDebug;
 	private String callbackMethod = null;
+	private String url = null;
 
 	final Logger logger = Logger.getLogger(CyUserLog.NAME);
  
-	public SwingPanel(CyServiceRegistrar registrar, JDialog parentDialog, boolean showURL) {
+	public SwingPanel(CyServiceRegistrar registrar, JDialog parentDialog, 
+	                  boolean showURL, boolean showDebug) {
 		super(new BorderLayout());
 		this.registrar = registrar;
 		this.showURL = showURL;
+		this.showDebug = showDebug;
 		parent = parentDialog;
 		panel = this;
+		if (parent == null)
+			setPreferredSize(new Dimension(200, 600));
 		initComponents();
 		Platform.setImplicitExit(false);
 
@@ -132,9 +142,11 @@ public class SwingPanel extends JPanel implements TaskObserver {
 				JPanel rightButtonPanel = new JPanel(new FlowLayout());
 				JButton btnGo = new JButton("Go");
 				btnGo.addActionListener(al);
-				JButton btnBug = createBugButton();
 				rightButtonPanel.add(btnGo);
-				rightButtonPanel.add(btnBug);
+				if (showDebug) {
+					JButton btnBug = createBugButton();
+					rightButtonPanel.add(btnBug);
+				}
 				topBar.add(rightButtonPanel, BorderLayout.EAST);
 			}
  
@@ -279,37 +291,11 @@ public class SwingPanel extends JPanel implements TaskObserver {
 					}
 				});
 
-				engine.getLoadWorker()
-						.exceptionProperty()
-						.addListener(new ChangeListener<Throwable>() {
- 
-							public void changed(ObservableValue<? extends Throwable> o, 
-							                    Throwable old, final Throwable value) {
-								if (engine.getLoadWorker().getState() == FAILED) {
-									SwingUtilities.invokeLater(new Runnable() {
-										@Override public void run() {
-											JOptionPane.showMessageDialog(
-													panel,
-													(value != null) ?
-													engine.getLocation() + "\n" + value.getMessage() :
-													engine.getLocation() + "\nUnexpected error.",
-													"Loading error...",
-													JOptionPane.ERROR_MESSAGE);
-										}
-									});
-								}
-							}
-						});
-
 				engine.getLoadWorker().stateProperty().addListener(new ChangeListener<State>() {
 					@Override
 					public void changed(ObservableValue ov, State oldState, State newState) {
 						/*
 						System.out.println("webEngine result "+newState.toString());
-						if (engine.getLoadWorker().getException() != null && newState == State.FAILED){
-							String exceptionMessage = ", "+engine.getLoadWorker().getException().toString();
-							System.out.println("webEngine failed: "+exceptionMessage);
-						}
 						*/
 						if (newState == Worker.State.SUCCEEDED) {
 							// OK, set up our callback
@@ -341,6 +327,21 @@ public class SwingPanel extends JPanel implements TaskObserver {
 								((EventTarget) nodeList.item(i)).addEventListener(EVENT_TYPE_CLICK, listener, false);
 							}
 							enableControls();
+						} else if (newState == Worker.State.FAILED) {
+								Alert alert = new Alert(AlertType.ERROR);
+								alert.setTitle("Load failed");
+								String alertText = "";
+								String exceptionMessage = engine.getLoadWorker().getException().getMessage();
+								if (url == null)
+									alertText = "\n\nFailed to load HTML text: "+exceptionMessage;
+								else
+									alertText = "\n\nFailed to load '"+url+"': "+exceptionMessage;
+								Text text = new Text(alertText);
+								text.setWrappingWidth(400);
+								text.setFont(Font.font("Verdana", 16));
+								alert.getDialogPane().setStyle("-fx-padding: 10px,10px,10px,10px;");
+								alert.getDialogPane().setContent(text);
+								alert.showAndWait();
 						}
 					}
 				});
@@ -353,20 +354,23 @@ public class SwingPanel extends JPanel implements TaskObserver {
 		Platform.runLater(new Runnable() {
 			@Override 
 			public void run() {
+				url = null;
 				engine.loadContent(text);
 			}
 		});
 	}
 
-	public void loadURL(final String url) {
+	public void loadURL(final String urlToLoad) {
 		Platform.runLater(new Runnable() {
 			@Override 
 			public void run() {
-				String tmp = toURL(url);
+				String tmp = toURL(urlToLoad);
  
 				if (tmp == null) {
-					tmp = toURL("http://" + url);
+					tmp = toURL("http://" + urlToLoad);
 				}
+
+				url = tmp;
  
 				engine.load(tmp);
 				enableControls();
@@ -405,16 +409,14 @@ public class SwingPanel extends JPanel implements TaskObserver {
 			callbackMethod = null;
 			Platform.runLater(new Runnable() {
 				@Override public void run() {
-					// System.out.println("Executing: "+cb+"(`"+escape(results)+"`)");
+					// System.out.println("Executing: "+cb+"(`"+results+"`)");
 					// We need to use templated strings to preserve newlines
-					engine.executeScript(cb+"(`"+results+"`)");
+					// engine.executeScript(cb+"(`"+results+"`)");
+					JSObject jsobj = (JSObject) engine.executeScript("window");
+					jsobj.call(cb, results);
 				}
 			});
 		}
-	}
-
-	private String escape(String str) {
-		return str.replaceAll("\n", "\\\n");
 	}
 
 	private void executeCommand(String command) {
@@ -446,7 +448,7 @@ public class SwingPanel extends JPanel implements TaskObserver {
 			callbackMethod = null;
 		}
 
-		public void executeCyCommandWithArg(String command, String callback) {
+		public void executeCyCommandWithResults(String command, String callback) {
 			executeCommand(command);
 			callbackMethod = callback;
 		}

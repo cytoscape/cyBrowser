@@ -15,6 +15,7 @@ import org.cytoscape.work.TaskMonitor;
 import org.cytoscape.work.Tunable;
 
 
+import edu.ucsf.rbvi.cyBrowser.internal.model.CyBrowser;
 import edu.ucsf.rbvi.cyBrowser.internal.model.CyBrowserManager;
 import edu.ucsf.rbvi.cyBrowser.internal.view.ResultsPanelBrowser;
 import edu.ucsf.rbvi.cyBrowser.internal.view.SwingBrowser;
@@ -26,6 +27,15 @@ public class StartBrowserTask extends AbstractTask {
 
 	@Tunable (description="HTML Text", context="nogui")
 	public String text;
+
+	@Tunable (description="Window Title", context="nogui")
+	public String title = null;
+
+	@Tunable (description="Window ID", context="nogui")
+	public String id = null;
+
+	@Tunable (description="Show debug tools", context="nogui")
+	public boolean debug = false;
 
 	final CyServiceRegistrar registrar;
 	final CyBrowserManager manager;
@@ -41,21 +51,37 @@ public class StartBrowserTask extends AbstractTask {
 	public void run(TaskMonitor monitor) {
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
+				CyBrowser br = manager.getBrowser(id);
 				if (dialog) {
-					SwingBrowser browser = new SwingBrowser(registrar);
+					SwingBrowser browser;
+					if (br != null && br instanceof SwingBrowser)
+						browser = (SwingBrowser) br;
+					else if (br != null && br instanceof ResultsPanelBrowser) {
+						manager.unregisterCytoPanel((ResultsPanelBrowser)br);
+						browser = new SwingBrowser(registrar, title, debug);
+					} else
+						browser = new SwingBrowser(registrar, title, debug);
 					browser.setVisible(true);
 					if (url != null && url.length() > 3) {
 						browser.loadURL(url);
 					}
+					br = (CyBrowser) browser;
 				} else {
-					ResultsPanelBrowser browser = new ResultsPanelBrowser(registrar, null);
+					ResultsPanelBrowser browser;
+					if (br != null && br instanceof ResultsPanelBrowser)
+						browser = (ResultsPanelBrowser) br;
+					else
+						browser = new ResultsPanelBrowser(registrar, title);
+
 					if (url != null && url.length() > 3) {
 						browser.loadURL(url);
 					} else if (text != null) {
 						browser.loadText(text);
 					}
 					manager.registerCytoPanel(browser);
+					br = (CyBrowser) browser;
 				}
+				manager.addBrowser(br, id);
 			}
 		});
 

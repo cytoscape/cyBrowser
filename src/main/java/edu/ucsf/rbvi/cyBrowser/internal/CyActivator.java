@@ -56,6 +56,7 @@ public class CyActivator extends AbstractCyActivator {
 			props.setProperty(IN_MENU_BAR, "true");
 			props.setProperty(COMMAND_NAMESPACE, "cybrowser");
 			props.setProperty(COMMAND, "dialog");
+			props.setProperty(COMMAND_DESCRIPTION, "Launch an HTML browser in a separate window");
 			registerService(bc, startBrowser, TaskFactory.class, props);
 		}
 
@@ -64,31 +65,19 @@ public class CyActivator extends AbstractCyActivator {
 			Properties props = new Properties();
 			props.setProperty(COMMAND_NAMESPACE, "cybrowser");
 			props.setProperty(COMMAND, "show");
+			props.setProperty(COMMAND_DESCRIPTION, "Launch an HTML browser in the Results Panel");
 			registerService(bc, startBrowser, TaskFactory.class, props);
 		}
-		
+
 		{
 			HideBrowserTaskFactory hideBrowser = new HideBrowserTaskFactory(registrar, manager);
 			Properties props = new Properties();
 			props.setProperty(COMMAND_NAMESPACE, "cybrowser");
 			props.setProperty(COMMAND, "hide");
+			props.setProperty(COMMAND_DESCRIPTION, "Hide an HTML browser in the Results Panel");
 			registerService(bc, hideBrowser, TaskFactory.class, props);
 		}
-		
-		/*
-		{
-			// Register our "Add Nodes" factory
-			StartBrowserTaskFactory startBrowser = new StartBrowserTaskFactory(registrar, false);
-			Properties props = new Properties();
-			props.setProperty(PREFERRED_MENU, "Apps.CyBrowserResultsPanel");
-			props.setProperty(TITLE, "Add CyBrowser to the results panel");
-			props.setProperty(MENU_GRAVITY, "2.0");
-			props.setProperty(IN_MENU_BAR, "true");
-			registerService(bc, startBrowser, TaskFactory.class, props);
-		}
-		*/
 
-		// manager.info("WebResultPanel initialized");
 	}
 
 }
