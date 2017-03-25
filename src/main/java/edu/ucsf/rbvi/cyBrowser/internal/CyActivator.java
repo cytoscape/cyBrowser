@@ -22,7 +22,8 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 
 import edu.ucsf.rbvi.cyBrowser.internal.tasks.HideBrowserTaskFactory;
-import edu.ucsf.rbvi.cyBrowser.internal.tasks.StartBrowserTaskFactory;
+import edu.ucsf.rbvi.cyBrowser.internal.tasks.ShowBrowserTaskFactory;
+import edu.ucsf.rbvi.cyBrowser.internal.tasks.DialogTaskFactory;
 
 import edu.ucsf.rbvi.cyBrowser.internal.model.CyBrowserManager;
 
@@ -48,7 +49,7 @@ public class CyActivator extends AbstractCyActivator {
 		CyBrowserManager manager = new CyBrowserManager(registrar);
 
 		{
-			StartBrowserTaskFactory startBrowser = new StartBrowserTaskFactory(registrar, manager, true);
+			DialogTaskFactory startBrowser = new DialogTaskFactory(registrar, manager);
 			Properties props = new Properties();
 			props.setProperty(PREFERRED_MENU, "Apps.CyBrowser");
 			props.setProperty(TITLE, "Launch Cytoscape web browser");
@@ -59,9 +60,9 @@ public class CyActivator extends AbstractCyActivator {
 			props.setProperty(COMMAND_DESCRIPTION, "Launch an HTML browser in a separate window");
 			registerService(bc, startBrowser, TaskFactory.class, props);
 		}
-
+		
 		{
-			StartBrowserTaskFactory startBrowser = new StartBrowserTaskFactory(registrar, manager, false);
+			ShowBrowserTaskFactory startBrowser = new ShowBrowserTaskFactory(registrar, manager);
 			Properties props = new Properties();
 			props.setProperty(COMMAND_NAMESPACE, "cybrowser");
 			props.setProperty(COMMAND, "show");
