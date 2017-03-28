@@ -64,6 +64,8 @@ import org.cytoscape.work.TaskObserver;
 import org.cytoscape.application.CyUserLog;
 import org.apache.log4j.Logger;
  
+import edu.ucsf.rbvi.cyBrowser.internal.model.CyBrowserManager;
+
 import static javafx.concurrent.Worker.State.FAILED;
 
 public class SwingPanel extends JPanel implements TaskObserver {
@@ -81,6 +83,7 @@ public class SwingPanel extends JPanel implements TaskObserver {
 	private JButton btnForward = null;
 
 	private final CyServiceRegistrar registrar;
+	private final CyBrowserManager manager;
 	private final CommandExecutorTaskFactory commandTaskFactory;
 	private final SynchronousTaskManager taskManager;
 	private final JDialog parent;
@@ -92,10 +95,11 @@ public class SwingPanel extends JPanel implements TaskObserver {
 
 	final Logger logger = Logger.getLogger(CyUserLog.NAME);
  
-	public SwingPanel(CyServiceRegistrar registrar, JDialog parentDialog, 
+	public SwingPanel(CyBrowserManager manager, JDialog parentDialog, 
 	                  boolean showURL, boolean showDebug) {
 		super(new BorderLayout());
-		this.registrar = registrar;
+		this.manager = manager;
+		this.registrar = manager.getRegistrar();
 		this.showURL = showURL;
 		this.showDebug = showDebug;
 		parent = parentDialog;
@@ -210,6 +214,8 @@ public class SwingPanel extends JPanel implements TaskObserver {
  
 				WebView view = new WebView();
 				engine = view.getEngine();
+				String userAgent = engine.getUserAgent();
+				engine.setUserAgent(userAgent+" CyBrowser/"+manager.getVersion());
 
 				engine.titleProperty().addListener(new ChangeListener<String>() {
 					@Override

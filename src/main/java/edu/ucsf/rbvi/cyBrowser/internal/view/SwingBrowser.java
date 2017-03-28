@@ -6,17 +6,19 @@ import javax.swing.JPanel;
 
 import org.cytoscape.service.util.CyServiceRegistrar;
 import edu.ucsf.rbvi.cyBrowser.internal.model.CyBrowser;
+import edu.ucsf.rbvi.cyBrowser.internal.model.CyBrowserManager;
 
 public class SwingBrowser extends JDialog implements CyBrowser {
 
-	private final CyServiceRegistrar registrar;
+	private final CyBrowserManager manager;
 	private final SwingPanel panel;
  
-	public SwingBrowser(CyServiceRegistrar registrar, String title, boolean showDebug) {
+	public SwingBrowser(CyBrowserManager manager, String title, 
+	                    boolean showDebug) {
 		super();
-		this.registrar = registrar;
+		this.manager = manager;
 		if (title != null) setTitle(title);
-		panel = new SwingPanel(registrar, this, true, showDebug);
+		panel = new SwingPanel(manager, this, true, showDebug);
 		getContentPane().add(panel);
 		
 		setPreferredSize(new Dimension(1024, 600));

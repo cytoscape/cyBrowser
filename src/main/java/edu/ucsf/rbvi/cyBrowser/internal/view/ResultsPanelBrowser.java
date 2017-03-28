@@ -11,17 +11,18 @@ import org.cytoscape.application.swing.CytoPanelName;
 import org.cytoscape.service.util.CyServiceRegistrar;
 
 import edu.ucsf.rbvi.cyBrowser.internal.model.CyBrowser;
+import edu.ucsf.rbvi.cyBrowser.internal.model.CyBrowserManager;
 
 public class ResultsPanelBrowser implements CytoPanelComponent2, CyBrowser {
 
-	private final CyServiceRegistrar registrar;
+	private final CyBrowserManager manager;
 	private final SwingPanel panel;
 	private String title;
  
-	public ResultsPanelBrowser(CyServiceRegistrar registrar, String title) {
+	public ResultsPanelBrowser(CyBrowserManager manager, String title) {
 		super();
-		this.registrar = registrar;
-		panel = new SwingPanel(registrar, null, false, false);
+		this.manager = manager;
+		panel = new SwingPanel(manager, null, false, false);
 
 		if (title != null)
 			this.title = title;

@@ -8,11 +8,9 @@ import edu.ucsf.rbvi.cyBrowser.internal.model.CyBrowserManager;
 
 public class HideBrowserTaskFactory extends AbstractTaskFactory {
 
-	final CyServiceRegistrar registrar;
 	final CyBrowserManager manager;
 
-	public HideBrowserTaskFactory(CyServiceRegistrar registrar, CyBrowserManager manager) {
-		this.registrar = registrar;
+	public HideBrowserTaskFactory(CyBrowserManager manager) {
 		this.manager = manager;
 	}
 
@@ -21,7 +19,7 @@ public class HideBrowserTaskFactory extends AbstractTaskFactory {
 	}
 
 	public TaskIterator createTaskIterator() {
-		return new TaskIterator(new HideBrowserTask(registrar, manager));
+		return new TaskIterator(new HideBrowserTask(manager));
 	}
 }
 

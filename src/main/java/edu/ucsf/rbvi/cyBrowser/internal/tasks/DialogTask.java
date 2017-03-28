@@ -37,12 +37,10 @@ public class DialogTask extends AbstractTask {
 	@Tunable (description="Show debug tools", context="nogui")
 	public boolean debug = false;
 
-	final CyServiceRegistrar registrar;
 	final CyBrowserManager manager;
   final CytoPanel cytoPanel = null;
 
-	public DialogTask(CyServiceRegistrar registrar, CyBrowserManager manager) {
-		this.registrar = registrar;
+	public DialogTask(CyBrowserManager manager) {
 		this.manager = manager;
 	}
 
@@ -55,9 +53,9 @@ public class DialogTask extends AbstractTask {
 					browser = (SwingBrowser) br;
 				else if (br != null && br instanceof ResultsPanelBrowser) {
 					manager.unregisterCytoPanel((ResultsPanelBrowser)br);
-					browser = new SwingBrowser(registrar, title, debug);
+					browser = new SwingBrowser(manager, title, debug);
 				} else
-					browser = new SwingBrowser(registrar, title, debug);
+					browser = new SwingBrowser(manager, title, debug);
 				browser.setVisible(true);
 				if (url != null && url.length() > 3) {
 					browser.loadURL(url);

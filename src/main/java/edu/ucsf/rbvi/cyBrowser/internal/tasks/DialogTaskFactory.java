@@ -8,11 +8,9 @@ import edu.ucsf.rbvi.cyBrowser.internal.model.CyBrowserManager;
 
 public class DialogTaskFactory extends AbstractTaskFactory {
 
-	CyServiceRegistrar registrar;
 	final CyBrowserManager manager;
 
-	public DialogTaskFactory(CyServiceRegistrar registrar, CyBrowserManager manager) {
-		this.registrar = registrar;
+	public DialogTaskFactory(CyBrowserManager manager) {
 		this.manager = manager;
 	}
 
@@ -21,7 +19,7 @@ public class DialogTaskFactory extends AbstractTaskFactory {
 	}
 
 	public TaskIterator createTaskIterator() {
-		return new TaskIterator(new DialogTask(registrar, manager));
+		return new TaskIterator(new DialogTask(manager));
 	}
 }
 

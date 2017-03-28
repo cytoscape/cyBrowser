@@ -24,6 +24,7 @@ import org.osgi.framework.ServiceReference;
 import edu.ucsf.rbvi.cyBrowser.internal.tasks.HideBrowserTaskFactory;
 import edu.ucsf.rbvi.cyBrowser.internal.tasks.ShowBrowserTaskFactory;
 import edu.ucsf.rbvi.cyBrowser.internal.tasks.DialogTaskFactory;
+import edu.ucsf.rbvi.cyBrowser.internal.tasks.VersionTaskFactory;
 
 import edu.ucsf.rbvi.cyBrowser.internal.model.CyBrowserManager;
 
@@ -48,8 +49,11 @@ public class CyActivator extends AbstractCyActivator {
 
 		CyBrowserManager manager = new CyBrowserManager(registrar);
 
+		String version = bc.getBundle().getVersion().toString();
+		manager.setVersion(version);
+
 		{
-			DialogTaskFactory startBrowser = new DialogTaskFactory(registrar, manager);
+			DialogTaskFactory startBrowser = new DialogTaskFactory(manager);
 			Properties props = new Properties();
 			props.setProperty(PREFERRED_MENU, "Apps.CyBrowser");
 			props.setProperty(TITLE, "Launch Cytoscape web browser");
@@ -62,7 +66,7 @@ public class CyActivator extends AbstractCyActivator {
 		}
 		
 		{
-			ShowBrowserTaskFactory startBrowser = new ShowBrowserTaskFactory(registrar, manager);
+			ShowBrowserTaskFactory startBrowser = new ShowBrowserTaskFactory(manager);
 			Properties props = new Properties();
 			props.setProperty(COMMAND_NAMESPACE, "cybrowser");
 			props.setProperty(COMMAND, "show");
@@ -71,12 +75,21 @@ public class CyActivator extends AbstractCyActivator {
 		}
 
 		{
-			HideBrowserTaskFactory hideBrowser = new HideBrowserTaskFactory(registrar, manager);
+			HideBrowserTaskFactory hideBrowser = new HideBrowserTaskFactory(manager);
 			Properties props = new Properties();
 			props.setProperty(COMMAND_NAMESPACE, "cybrowser");
 			props.setProperty(COMMAND, "hide");
 			props.setProperty(COMMAND_DESCRIPTION, "Hide an HTML browser in the Results Panel");
 			registerService(bc, hideBrowser, TaskFactory.class, props);
+		}
+		
+		{
+			VersionTaskFactory versionTask = new VersionTaskFactory(version);
+			Properties props = new Properties();
+			props.setProperty(COMMAND_NAMESPACE, "cybrowser");
+			props.setProperty(COMMAND, "version");
+			props.setProperty(COMMAND_DESCRIPTION, "Display the CyBrowser version");
+			registerService(bc, versionTask, TaskFactory.class, props);
 		}
 
 	}

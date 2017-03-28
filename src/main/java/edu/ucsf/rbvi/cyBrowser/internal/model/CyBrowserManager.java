@@ -20,12 +20,17 @@ public class CyBrowserManager {
 	CyServiceRegistrar registrar;
   CytoPanel cytoPanel = null;
 	Map<String, CyBrowser> idMap;
+	String version = "unknown";
 
 	public CyBrowserManager(CyServiceRegistrar registrar) {
 		this.registrar = registrar;
 		CySwingApplication swingApplication = registrar.getService(CySwingApplication.class);
 		this.cytoPanel = swingApplication.getCytoPanel(CytoPanelName.EAST);
 		idMap = new HashMap<>();
+	}
+
+	public CyServiceRegistrar getRegistrar() {
+		return registrar;
 	}
 
 	public void registerCytoPanel(ResultsPanelBrowser browser) {
@@ -65,4 +70,7 @@ public class CyBrowserManager {
 	public void removeBrowser(String id) {
 		idMap.remove(id);
 	}
+
+	public void setVersion(String v) { this.version = v; }
+	public String getVersion() { return version; }
 }

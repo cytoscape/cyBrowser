@@ -34,12 +34,10 @@ public class ShowBrowserTask extends AbstractTask {
 	@Tunable (description="Window ID", context="nogui")
 	public String id = null;
 
-	final CyServiceRegistrar registrar;
 	final CyBrowserManager manager;
   final CytoPanel cytoPanel = null;
 
-	public ShowBrowserTask(CyServiceRegistrar registrar, CyBrowserManager manager) {
-		this.registrar = registrar;
+	public ShowBrowserTask(CyBrowserManager manager) {
 		this.manager = manager;
 	}
 
@@ -51,7 +49,7 @@ public class ShowBrowserTask extends AbstractTask {
 				if (br != null && br instanceof ResultsPanelBrowser)
 					browser = (ResultsPanelBrowser) br;
 				else
-					browser = new ResultsPanelBrowser(registrar, title);
+					browser = new ResultsPanelBrowser(manager, title);
 
 				if (url != null && url.length() > 3) {
 					browser.loadURL(url);

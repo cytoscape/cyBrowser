@@ -25,11 +25,9 @@ public class HideBrowserTask extends AbstractTask {
 	@Tunable (description="Window ID", context="nogui")
 	public String id = null;
 
-	final CyServiceRegistrar registrar;
 	final CyBrowserManager manager;
 
-	public HideBrowserTask(CyServiceRegistrar registrar, CyBrowserManager manager) {
-		this.registrar = registrar;
+	public HideBrowserTask(CyBrowserManager manager) {
 		this.manager = manager;
 	}
 
@@ -37,6 +35,8 @@ public class HideBrowserTask extends AbstractTask {
 		CyBrowser browser = manager.getBrowser(id);
 		if (browser instanceof ResultsPanelBrowser)
 			manager.unregisterCytoPanel((ResultsPanelBrowser)browser);
+		else if (browser instanceof SwingBrowser)
+			((SwingBrowser)browser).dispose();
 		manager.removeBrowser(id);
 	}
 
