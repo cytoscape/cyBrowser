@@ -70,7 +70,7 @@ import static javafx.concurrent.Worker.State.FAILED;
 
 public class SwingPanel extends JPanel implements TaskObserver {
  
-	private final JFXPanel jfxPanel = new JFXPanel();
+	protected JFXPanel jfxPanel = new JFXPanel();
 	private WebEngine engine;
  
 	private final JLabel lblStatus = new JLabel();
@@ -95,7 +95,7 @@ public class SwingPanel extends JPanel implements TaskObserver {
 
 	final Logger logger = Logger.getLogger(CyUserLog.NAME);
  
-	public SwingPanel(CyBrowserManager manager, JDialog parentDialog, 
+	public SwingPanel(CyBrowserManager manager, JDialog parentDialog, SwingPanel reuse, 
 	                  boolean showURL, boolean showDebug) {
 		super(new BorderLayout());
 		this.manager = manager;
@@ -106,7 +106,7 @@ public class SwingPanel extends JPanel implements TaskObserver {
 		panel = this;
 		if (parent == null)
 			setPreferredSize(new Dimension(200, 600));
-		initComponents();
+		initComponents(reuse);
 		Platform.setImplicitExit(false);
 
 		// Get the services we'll need
@@ -115,8 +115,13 @@ public class SwingPanel extends JPanel implements TaskObserver {
 	}
 
 	
-	private void initComponents() {
-		createScene();
+	private void initComponents(SwingPanel reuse) {
+		if (reuse == null)
+			createScene();
+		else {
+			jfxPanel = reuse.jfxPanel;
+			engine = reuse.engine;
+		}
  
 		if (showURL) {
 			ActionListener al = new ActionListener() {

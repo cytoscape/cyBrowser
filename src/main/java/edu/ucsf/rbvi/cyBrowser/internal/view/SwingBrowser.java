@@ -12,19 +12,43 @@ public class SwingBrowser extends JDialog implements CyBrowser {
 
 	private final CyBrowserManager manager;
 	private final SwingPanel panel;
- 
-	public SwingBrowser(CyBrowserManager manager, String title, 
+	private String initialTitle = null;
+
+	public SwingBrowser(CyBrowserManager manager, SwingPanel reuse, String title, 
 	                    boolean showDebug) {
 		super();
 		this.manager = manager;
-		if (title != null) setTitle(title);
-		panel = new SwingPanel(manager, this, true, showDebug);
+		if (title != null) {
+			setTitle(title);
+			this.initialTitle = title;
+		}
+		this.panel = new SwingPanel(manager, this, reuse, true, showDebug);
 		getContentPane().add(panel);
-		
+
 		setPreferredSize(new Dimension(1024, 600));
 		setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		pack();
 	}
+
+	public SwingBrowser(CyBrowserManager manager, String title, 
+	                    boolean showDebug) {
+		super();
+		this.manager = manager;
+		if (title != null) {
+			setTitle(title);
+			this.initialTitle = title;
+		}
+		panel = new SwingPanel(manager, this, null, true, showDebug);
+		getContentPane().add(panel);
+
+		setPreferredSize(new Dimension(1024, 600));
+		setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+		pack();
+	}
+
+	public String getTitle() { return initialTitle; }
+
+	public SwingPanel getPanel() { return panel; }
 
 	public void loadURL(final String url) {
 		panel.loadURL(url);

@@ -19,6 +19,7 @@ import edu.ucsf.rbvi.cyBrowser.internal.model.CyBrowser;
 import edu.ucsf.rbvi.cyBrowser.internal.model.CyBrowserManager;
 import edu.ucsf.rbvi.cyBrowser.internal.view.ResultsPanelBrowser;
 import edu.ucsf.rbvi.cyBrowser.internal.view.SwingBrowser;
+import edu.ucsf.rbvi.cyBrowser.internal.view.SwingPanel;
 
 public class ShowBrowserTask extends AbstractTask {
 
@@ -48,8 +49,13 @@ public class ShowBrowserTask extends AbstractTask {
 				ResultsPanelBrowser browser;
 				if (br != null && br instanceof ResultsPanelBrowser)
 					browser = (ResultsPanelBrowser) br;
-				else
+				else if (br != null && br instanceof SwingBrowser) {
+					SwingPanel panel = br.getPanel();
+					((SwingBrowser)br).setVisible(false);
+					browser = new ResultsPanelBrowser(manager, panel, title);
+				} else {
 					browser = new ResultsPanelBrowser(manager, title);
+				}
 
 				if (url != null && url.length() > 3) {
 					browser.loadURL(url);

@@ -19,6 +19,7 @@ import edu.ucsf.rbvi.cyBrowser.internal.model.CyBrowser;
 import edu.ucsf.rbvi.cyBrowser.internal.model.CyBrowserManager;
 import edu.ucsf.rbvi.cyBrowser.internal.view.ResultsPanelBrowser;
 import edu.ucsf.rbvi.cyBrowser.internal.view.SwingBrowser;
+import edu.ucsf.rbvi.cyBrowser.internal.view.SwingPanel;
 
 public class DialogTask extends AbstractTask {
 
@@ -52,8 +53,9 @@ public class DialogTask extends AbstractTask {
 				if (br != null && br instanceof SwingBrowser)
 					browser = (SwingBrowser) br;
 				else if (br != null && br instanceof ResultsPanelBrowser) {
+					SwingPanel panel = br.getPanel();
 					manager.unregisterCytoPanel((ResultsPanelBrowser)br);
-					browser = new SwingBrowser(manager, title, debug);
+					browser = new SwingBrowser(manager, panel, title, debug);
 				} else
 					browser = new SwingBrowser(manager, title, debug);
 				browser.setVisible(true);
