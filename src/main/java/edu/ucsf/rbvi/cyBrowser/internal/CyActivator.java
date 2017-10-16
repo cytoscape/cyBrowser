@@ -55,8 +55,8 @@ public class CyActivator extends AbstractCyActivator {
 		{
 			DialogTaskFactory startBrowser = new DialogTaskFactory(manager);
 			Properties props = new Properties();
-			props.setProperty(PREFERRED_MENU, "Apps.CyBrowser");
-			props.setProperty(TITLE, "Launch Cytoscape web browser");
+			props.setProperty(PREFERRED_MENU, "Tools");
+			props.setProperty(TITLE, "Cytoscape web browser");
 			props.setProperty(MENU_GRAVITY, "1.0");
 			props.setProperty(IN_MENU_BAR, "true");
 			props.setProperty(COMMAND_NAMESPACE, "cybrowser");
