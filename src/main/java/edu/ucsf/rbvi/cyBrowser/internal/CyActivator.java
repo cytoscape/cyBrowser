@@ -4,7 +4,10 @@ import java.util.Properties;
 
 import static org.cytoscape.work.ServiceProperties.COMMAND;
 import static org.cytoscape.work.ServiceProperties.COMMAND_DESCRIPTION;
+import static org.cytoscape.work.ServiceProperties.COMMAND_LONG_DESCRIPTION;
 import static org.cytoscape.work.ServiceProperties.COMMAND_NAMESPACE;
+import static org.cytoscape.work.ServiceProperties.COMMAND_EXAMPLE_JSON;
+import static org.cytoscape.work.ServiceProperties.COMMAND_SUPPORTS_JSON;
 import static org.cytoscape.work.ServiceProperties.ENABLE_FOR;
 import static org.cytoscape.work.ServiceProperties.INSERT_SEPARATOR_BEFORE;
 import static org.cytoscape.work.ServiceProperties.IN_MENU_BAR;
@@ -62,6 +65,11 @@ public class CyActivator extends AbstractCyActivator {
 			props.setProperty(COMMAND_NAMESPACE, "cybrowser");
 			props.setProperty(COMMAND, "dialog");
 			props.setProperty(COMMAND_DESCRIPTION, "Launch an HTML browser in a separate window");
+			props.setProperty(COMMAND_LONG_DESCRIPTION, 
+			                  "Launch Cytoscape's internal web browser in a separate window.  Provide an ``id`` for the window if you " +
+			                  "want subsequent control of the window via ``cybrowser hide``");
+			props.setProperty(COMMAND_SUPPORTS_JSON, "yes");
+			props.setProperty(COMMAND_EXAMPLE_JSON, "{}");
 			registerService(bc, startBrowser, TaskFactory.class, props);
 		}
 		
@@ -71,6 +79,11 @@ public class CyActivator extends AbstractCyActivator {
 			props.setProperty(COMMAND_NAMESPACE, "cybrowser");
 			props.setProperty(COMMAND, "show");
 			props.setProperty(COMMAND_DESCRIPTION, "Launch an HTML browser in the Results Panel");
+			props.setProperty(COMMAND_LONG_DESCRIPTION, 
+			                  "Launch Cytoscape's internal web browser in a pane in the Result Panel.  Provide an ``id`` for the window if you " +
+			                  "want subsequent control of the window via ``cybrowser hide``");
+			props.setProperty(COMMAND_SUPPORTS_JSON, "yes");
+			props.setProperty(COMMAND_EXAMPLE_JSON, "{}");
 			registerService(bc, startBrowser, TaskFactory.class, props);
 		}
 
@@ -80,6 +93,9 @@ public class CyActivator extends AbstractCyActivator {
 			props.setProperty(COMMAND_NAMESPACE, "cybrowser");
 			props.setProperty(COMMAND, "hide");
 			props.setProperty(COMMAND_DESCRIPTION, "Hide an HTML browser in the Results Panel");
+			props.setProperty(COMMAND_LONG_DESCRIPTION, "Launch an HTML browser in a separate window");
+			props.setProperty(COMMAND_SUPPORTS_JSON, "yes");
+			props.setProperty(COMMAND_EXAMPLE_JSON, "{}");
 			registerService(bc, hideBrowser, TaskFactory.class, props);
 		}
 		
@@ -89,6 +105,8 @@ public class CyActivator extends AbstractCyActivator {
 			props.setProperty(COMMAND_NAMESPACE, "cybrowser");
 			props.setProperty(COMMAND, "version");
 			props.setProperty(COMMAND_DESCRIPTION, "Display the CyBrowser version");
+			props.setProperty(COMMAND_SUPPORTS_JSON, "yes");
+			props.setProperty(COMMAND_EXAMPLE_JSON, "{\"version\":\"1.0\"}");
 			registerService(bc, versionTask, TaskFactory.class, props);
 		}
 

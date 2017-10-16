@@ -20,9 +20,12 @@ import edu.ucsf.rbvi.cyBrowser.internal.model.CyBrowserManager;
 import edu.ucsf.rbvi.cyBrowser.internal.view.ResultsPanelBrowser;
 import edu.ucsf.rbvi.cyBrowser.internal.view.SwingBrowser;
 
-public class HideBrowserTask extends AbstractTask {
+public class HideBrowserTask extends AbstractEmptyObservableTask {
 
-	@Tunable (description="Window ID", context="nogui")
+	@Tunable (description="Window ID", 
+	          longDescription="The ID for the browser window to hide",
+	          exampleStringValue="Window 1",
+	          context="nogui")
 	public String id = null;
 
 	final CyBrowserManager manager;

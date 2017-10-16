@@ -4,9 +4,9 @@
 	<properties>
 		<bundle.symbolicName>cyBrowser</bundle.symbolicName>
 		<bundle.namespace>edu.ucsf.rbvi.cyBrowser.internal</bundle.namespace>
-		<cytoscape.api.version>3.4.0</cytoscape.api.version>
+		<cytoscape.api.version>3.6.0-SNAPSHOT</cytoscape.api.version>
 		
-		<maven-bundle-plugin.version>2.3.4</maven-bundle-plugin.version>
+		<maven-bundle-plugin.version>2.5.4</maven-bundle-plugin.version>
 		<osgi.api.version>4.2.0</osgi.api.version>
 	</properties>
 
