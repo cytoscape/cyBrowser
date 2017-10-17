@@ -25,7 +25,7 @@ public class VersionTask extends AbstractTask implements ObservableTask {
       String response = "Version: "+version+"\n";
       return (R)response;
     } else if (type.equals(JSONResult.class)) {
-			JSONResult res = () -> { return "\"version\":\""+version+"\""; };
+			JSONResult res = () -> { return "{\"version\":\""+version+"\"}"; };
 			return (R)res;
 		}
     return null;

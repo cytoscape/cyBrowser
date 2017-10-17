@@ -66,7 +66,8 @@ public class CyActivator extends AbstractCyActivator {
 			props.setProperty(COMMAND, "dialog");
 			props.setProperty(COMMAND_DESCRIPTION, "Launch an HTML browser in a separate window");
 			props.setProperty(COMMAND_LONG_DESCRIPTION, 
-			                  "Launch Cytoscape's internal web browser in a separate window.  Provide an ``id`` for the window if you " +
+			                  "Launch Cytoscape's internal web browser in a separate window.  " +
+			                  "Provide an ``id`` for the window if you " +
 			                  "want subsequent control of the window via ``cybrowser hide``");
 			props.setProperty(COMMAND_SUPPORTS_JSON, "yes");
 			props.setProperty(COMMAND_EXAMPLE_JSON, "{}");
@@ -80,7 +81,8 @@ public class CyActivator extends AbstractCyActivator {
 			props.setProperty(COMMAND, "show");
 			props.setProperty(COMMAND_DESCRIPTION, "Launch an HTML browser in the Results Panel");
 			props.setProperty(COMMAND_LONG_DESCRIPTION, 
-			                  "Launch Cytoscape's internal web browser in a pane in the Result Panel.  Provide an ``id`` for the window if you " +
+			                  "Launch Cytoscape's internal web browser in a pane in the Result Panel.  "+
+			                  "Provide an ``id`` for the window if you " +
 			                  "want subsequent control of the window via ``cybrowser hide``");
 			props.setProperty(COMMAND_SUPPORTS_JSON, "yes");
 			props.setProperty(COMMAND_EXAMPLE_JSON, "{}");
@@ -93,7 +95,8 @@ public class CyActivator extends AbstractCyActivator {
 			props.setProperty(COMMAND_NAMESPACE, "cybrowser");
 			props.setProperty(COMMAND, "hide");
 			props.setProperty(COMMAND_DESCRIPTION, "Hide an HTML browser in the Results Panel");
-			props.setProperty(COMMAND_LONG_DESCRIPTION, "Launch an HTML browser in a separate window");
+			props.setProperty(COMMAND_LONG_DESCRIPTION, "Hide an existing browser, whether it's "+
+			                  "in the Results panel or a separate window.");
 			props.setProperty(COMMAND_SUPPORTS_JSON, "yes");
 			props.setProperty(COMMAND_EXAMPLE_JSON, "{}");
 			registerService(bc, hideBrowser, TaskFactory.class, props);
