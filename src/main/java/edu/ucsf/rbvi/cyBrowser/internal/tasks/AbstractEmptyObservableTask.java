@@ -28,4 +28,23 @@ abstract public class AbstractEmptyObservableTask extends AbstractTask implement
 	public List<Class<?>> getResultClasses() {
 		return Arrays.asList(String.class, JSONResult.class);
 	}
+
+	@SuppressWarnings("unchecked")
+	public <R> R getIDResults(Class<? extends R> type, String ID) {
+		if (type.equals(String.class)) {
+			if (ID != null)
+				return (R)ID;
+			return (R)"";
+		} else if (type.equals(JSONResult.class)) {
+			JSONResult res = () -> { 
+				if (ID != null) {
+					return "{\"id\":\""+ID+"\"}";
+				} else {
+					return "{\"id\":\"\"}"; 
+				}
+			};
+			return (R)res;
+		}
+		return null;
+	}
 }

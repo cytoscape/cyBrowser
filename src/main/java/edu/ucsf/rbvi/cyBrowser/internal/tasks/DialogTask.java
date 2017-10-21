@@ -89,4 +89,9 @@ public class DialogTask extends AbstractEmptyObservableTask {
 	public String getTitle() {
 		return "Starting Cytoscape Web Browser";
 	}
+
+	@Override
+	public <R> R getResults(Class<? extends R> type) {
+		return getIDResults(type, id);
+	}
 }

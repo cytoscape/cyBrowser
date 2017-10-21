@@ -87,4 +87,9 @@ public class ShowBrowserTask extends AbstractEmptyObservableTask {
 	public String getTitle() {
 		return "Showing Results Panel Browser";
 	}
+
+	@Override
+	public <R> R getResults(Class<? extends R> type) {
+		return getIDResults(type, id);
+	}
 }

@@ -58,16 +58,19 @@ public class CyBrowserManager {
 	}
 
 	public  CyBrowser getBrowser(String id) {
+		if (id == null) id = "";
 		if (idMap.containsKey(id))
 			return idMap.get(id);
 		return null;
 	}
 
 	public void addBrowser(CyBrowser browser, String id) {
+		if (id == null) id = "";
 		idMap.put(id, browser);
 	}
 
 	public void removeBrowser(String id) {
+		if (id == null) id = "";
 		idMap.remove(id);
 	}
 

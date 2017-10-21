@@ -70,7 +70,7 @@ public class CyActivator extends AbstractCyActivator {
 			                  "Provide an ``id`` for the window if you " +
 			                  "want subsequent control of the window via ``cybrowser hide``");
 			props.setProperty(COMMAND_SUPPORTS_JSON, "true");
-			props.setProperty(COMMAND_EXAMPLE_JSON, "{}");
+			props.setProperty(COMMAND_EXAMPLE_JSON, "{\"id\":\"my window\"}");
 			registerService(bc, startBrowser, TaskFactory.class, props);
 		}
 		
@@ -85,7 +85,7 @@ public class CyActivator extends AbstractCyActivator {
 			                  "Provide an ``id`` for the window if you " +
 			                  "want subsequent control of the window via ``cybrowser hide``");
 			props.setProperty(COMMAND_SUPPORTS_JSON, "true");
-			props.setProperty(COMMAND_EXAMPLE_JSON, "{}");
+			props.setProperty(COMMAND_EXAMPLE_JSON, "{\"id\":\"my window\"}");
 			registerService(bc, startBrowser, TaskFactory.class, props);
 		}
 
@@ -108,6 +108,7 @@ public class CyActivator extends AbstractCyActivator {
 			props.setProperty(COMMAND_NAMESPACE, "cybrowser");
 			props.setProperty(COMMAND, "version");
 			props.setProperty(COMMAND_DESCRIPTION, "Display the CyBrowser version");
+			props.setProperty(COMMAND_LONG_DESCRIPTION, "Display the version of the CyBrowser app.");
 			props.setProperty(COMMAND_SUPPORTS_JSON, "true");
 			props.setProperty(COMMAND_EXAMPLE_JSON, "{\"version\":\"1.0\"}");
 			registerService(bc, versionTask, TaskFactory.class, props);
