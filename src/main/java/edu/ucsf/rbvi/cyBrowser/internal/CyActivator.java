@@ -24,9 +24,11 @@ import org.cytoscape.work.TaskFactory;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 
-import edu.ucsf.rbvi.cyBrowser.internal.tasks.HideBrowserTaskFactory;
-import edu.ucsf.rbvi.cyBrowser.internal.tasks.ShowBrowserTaskFactory;
+import edu.ucsf.rbvi.cyBrowser.internal.tasks.CloseBrowserTaskFactory;
 import edu.ucsf.rbvi.cyBrowser.internal.tasks.DialogTaskFactory;
+import edu.ucsf.rbvi.cyBrowser.internal.tasks.HideBrowserTaskFactory;
+import edu.ucsf.rbvi.cyBrowser.internal.tasks.ListBrowsersTaskFactory;
+import edu.ucsf.rbvi.cyBrowser.internal.tasks.ShowBrowserTaskFactory;
 import edu.ucsf.rbvi.cyBrowser.internal.tasks.VersionTaskFactory;
 
 import edu.ucsf.rbvi.cyBrowser.internal.model.CyBrowserManager;
@@ -87,6 +89,35 @@ public class CyActivator extends AbstractCyActivator {
 			props.setProperty(COMMAND_SUPPORTS_JSON, "true");
 			props.setProperty(COMMAND_EXAMPLE_JSON, "{\"id\":\"my window\"}");
 			registerService(bc, startBrowser, TaskFactory.class, props);
+		}
+		
+		{
+			CloseBrowserTaskFactory closeBrowser = new CloseBrowserTaskFactory(manager);
+			Properties props = new Properties();
+			props.setProperty(COMMAND_NAMESPACE, "cybrowser");
+			props.setProperty(COMMAND, "close");
+			props.setProperty(COMMAND_DESCRIPTION, "Close an open browser, removing it's id");
+			props.setProperty(COMMAND_LONG_DESCRIPTION, 
+			                  "Close an internal web browser and remove all content.  "+
+			                  "Provide an ``id`` for the browser you " +
+			                  "want to close.");
+			props.setProperty(COMMAND_SUPPORTS_JSON, "true");
+			props.setProperty(COMMAND_EXAMPLE_JSON, "{\"id\":\"my window\"}");
+			registerService(bc, closeBrowser, TaskFactory.class, props);
+		}
+		
+		{
+			ListBrowsersTaskFactory listBrowsers = new ListBrowsersTaskFactory(manager);
+			Properties props = new Properties();
+			props.setProperty(COMMAND_NAMESPACE, "cybrowser");
+			props.setProperty(COMMAND, "list");
+			props.setProperty(COMMAND_DESCRIPTION, "List all open browsers");
+			props.setProperty(COMMAND_LONG_DESCRIPTION, 
+			                  "List all browsers that are currently open, whether as "+
+			                  "a dialog or in the results panel.");
+			props.setProperty(COMMAND_SUPPORTS_JSON, "true");
+			props.setProperty(COMMAND_EXAMPLE_JSON, "[{\"id\":\"my window\",\"title\":\"title\", \"url\":\"cytoscape.org\"]}");
+			registerService(bc, listBrowsers, TaskFactory.class, props);
 		}
 
 		{

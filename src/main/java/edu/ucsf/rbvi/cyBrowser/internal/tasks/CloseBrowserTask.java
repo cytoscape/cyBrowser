@@ -20,28 +20,22 @@ import edu.ucsf.rbvi.cyBrowser.internal.model.CyBrowserManager;
 import edu.ucsf.rbvi.cyBrowser.internal.view.ResultsPanelBrowser;
 import edu.ucsf.rbvi.cyBrowser.internal.view.SwingBrowser;
 
-public class HideBrowserTask extends AbstractEmptyObservableTask {
+public class CloseBrowserTask extends AbstractEmptyObservableTask {
 
 	@Tunable (description="Window ID", 
-	          longDescription="The ID for the browser window to hide",
+	          longDescription="The ID for the browser window to close",
 	          exampleStringValue="Window 1",
 	          context="nogui")
 	public String id = null;
 
 	final CyBrowserManager manager;
 
-	public HideBrowserTask(CyBrowserManager manager) {
+	public CloseBrowserTask(CyBrowserManager manager) {
 		this.manager = manager;
 	}
 
 	public void run(TaskMonitor monitor) {
-		CyBrowser browser = manager.getBrowser(id);
-		// System.out.println("Hiding window "+id+" browser "+browser);
-		if (browser instanceof ResultsPanelBrowser)
-			manager.unregisterCytoPanel((ResultsPanelBrowser)browser);
-		else if (browser instanceof SwingBrowser)
-			((SwingBrowser)browser).dispose();
-		manager.removeBrowser(id);
+		manager.closeBrowser(id);
 	}
 
 	@ProvidesTitle

@@ -29,6 +29,13 @@ public class DialogTask extends AbstractEmptyObservableTask {
 	          gravity=1.0)
 	public String url;
 
+	@Tunable (description="Open in results panel?", 
+	          longDescription="If true, open the browser in the results panel",
+	          exampleStringValue="true",
+	          gravity=2.0,
+						context="gui")
+	public boolean resultsPanel = false;
+
 	@Tunable (description="HTML Text", 
 	          longDescription="HTML text to initially load into the browser",
 	          exampleStringValue="<HTML><HEAD><TITLE>Hello</TITLE></HEAD><BODY>Hello, world!</BODY></HTML>",
@@ -64,22 +71,36 @@ public class DialogTask extends AbstractEmptyObservableTask {
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
 				CyBrowser br = manager.getBrowser(id);
-				SwingBrowser browser;
+				SwingBrowser browser = null;
+
+				if (id == null) {
+					if (title != null) 
+						id = title;
+					else
+						id = manager.makeId();
+				}
+
 				if (br != null && br instanceof SwingBrowser)
 					browser = (SwingBrowser) br;
 				else if (br != null && br instanceof ResultsPanelBrowser) {
 					SwingPanel panel = br.getPanel();
 					manager.unregisterCytoPanel((ResultsPanelBrowser)br);
-					browser = new SwingBrowser(manager, panel, title, debug);
+					browser = new SwingBrowser(manager, id, panel, title, debug);
+				} else if (br == null && resultsPanel) {
+					ResultsPanelBrowser rpbr = new ResultsPanelBrowser(manager, id, title);
+					manager.registerCytoPanel(rpbr);
+					br = (CyBrowser)rpbr;
 				} else
-					browser = new SwingBrowser(manager, title, debug);
-				browser.setVisible(true);
-				if (url != null && url.length() > 3) {
-					browser.loadURL(url);
+					browser = new SwingBrowser(manager, id, title, debug);
+
+				if (browser != null) {
+					browser.setVisible(true);
+					br = (CyBrowser) browser;
 				}
-				br = (CyBrowser) browser;
-				if (id != null)
-					manager.addBrowser(br, id);
+				if (url != null && url.length() > 3) {
+					br.loadURL(url);
+				}
+				manager.addBrowser(br, id);
 			}
 		});
 

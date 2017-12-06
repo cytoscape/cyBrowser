@@ -16,13 +16,15 @@ import edu.ucsf.rbvi.cyBrowser.internal.model.CyBrowserManager;
 public class ResultsPanelBrowser implements CytoPanelComponent2, CyBrowser {
 
 	private final CyBrowserManager manager;
-	private SwingPanel panel;
-	private String title;
+	private final SwingPanel panel;
+	private final String title;
+	private final String id;
 
-	public ResultsPanelBrowser(CyBrowserManager manager, SwingPanel reuse, String title) {
+	public ResultsPanelBrowser(CyBrowserManager manager, String id, SwingPanel reuse, String title) {
 		super();
 		this.manager = manager;
-		panel = new SwingPanel(manager, null, reuse, false, false);
+		panel = new SwingPanel(manager, id, null, reuse, false, false);
+		this.id = id;
 
 		if (title != null)
 			this.title = title;
@@ -30,10 +32,11 @@ public class ResultsPanelBrowser implements CytoPanelComponent2, CyBrowser {
 			this.title = "CyBrowser";
 	}
  
-	public ResultsPanelBrowser(CyBrowserManager manager, String title) {
+	public ResultsPanelBrowser(CyBrowserManager manager, String id, String title) {
 		super();
 		this.manager = manager;
-		panel = new SwingPanel(manager, null, null, false, false);
+		panel = new SwingPanel(manager, id, null, null, false, false);
+		this.id = id;
 
 		if (title != null)
 			this.title = title;
@@ -47,6 +50,8 @@ public class ResultsPanelBrowser implements CytoPanelComponent2, CyBrowser {
 	public void loadURL(final String url) {
 		panel.loadURL(url);
 	}
+
+	public String getURL() { return panel.getURL(); }
 
 	public void loadText(final String text) {
 		panel.loadText(text);
