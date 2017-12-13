@@ -61,24 +61,19 @@ import javax.swing.SwingUtilities;
 
 import netscape.javascript.JSObject;
 
-import org.cytoscape.command.CommandExecutorTaskFactory;
 import org.cytoscape.service.util.CyServiceRegistrar;
 import org.cytoscape.util.swing.IconManager;
-import org.cytoscape.work.FinishStatus;
-import org.cytoscape.work.ObservableTask;
-import org.cytoscape.work.SynchronousTaskManager;
-import org.cytoscape.work.TaskIterator;
-import org.cytoscape.work.TaskObserver;
 
 import org.cytoscape.application.CyUserLog;
 import org.apache.log4j.Logger;
  
+import edu.ucsf.rbvi.cyBrowser.internal.model.Bridge;
 import edu.ucsf.rbvi.cyBrowser.internal.model.CyBrowser;
 import edu.ucsf.rbvi.cyBrowser.internal.model.CyBrowserManager;
 
 import static javafx.concurrent.Worker.State.FAILED;
 
-public class SwingPanel extends JPanel implements TaskObserver {
+public class SwingPanel extends JPanel {
  
 	protected JFXPanel jfxPanel = new JFXPanel();
 	private WebEngine engine;
@@ -95,8 +90,6 @@ public class SwingPanel extends JPanel implements TaskObserver {
 
 	private final CyServiceRegistrar registrar;
 	private final CyBrowserManager manager;
-	private final CommandExecutorTaskFactory commandTaskFactory;
-	private final SynchronousTaskManager taskManager;
 	private final JDialog parent;
 	private final JPanel panel;
 	private final boolean showURL;
@@ -108,6 +101,9 @@ public class SwingPanel extends JPanel implements TaskObserver {
 	// Three class variables to help with our context menus
 	private String selection;
 	private Element anchor;
+
+	// Our javascript bridge
+	private Bridge jsBridge;
 
 	// Our ID
 	private final String id;
@@ -128,10 +124,6 @@ public class SwingPanel extends JPanel implements TaskObserver {
 			setPreferredSize(new Dimension(200, 600));
 		initComponents(reuse);
 		Platform.setImplicitExit(false);
-
-		// Get the services we'll need
-		commandTaskFactory = registrar.getService(CommandExecutorTaskFactory.class);
-		taskManager = registrar.getService(SynchronousTaskManager.class);
 	}
 
 	public String getURL() {
@@ -342,7 +334,8 @@ public class SwingPanel extends JPanel implements TaskObserver {
 
 							// Set member for 'window' object
 							// In Javascript access: window.cybrowser...
-							jsobj.setMember("cybrowser", new Bridge());
+							jsBridge = new Bridge(engine, registrar);
+							jsobj.setMember("cybrowser", jsBridge);
 
 							// Now set up a listener for link click events
 							EventListener listener = new EventListener() {
@@ -361,7 +354,7 @@ public class SwingPanel extends JPanel implements TaskObserver {
 											String href = ((Element)ev.getTarget()).getAttribute("href");
 											if (href != null && href.startsWith("cycmd:")) {
 												String command = href.substring("cycmd:".length());
-												executeCommand(command);
+												jsBridge.executeCommand(command);
 											}
 										}
 									}
@@ -448,6 +441,9 @@ public class SwingPanel extends JPanel implements TaskObserver {
 			public void run() {
 				url = null;
 				engine.loadContent(text);
+				// Clear Cytoscape listeners?
+				if (jsBridge != null)
+					jsBridge.clearListeners();
 			}
 		});
 	}
@@ -458,6 +454,8 @@ public class SwingPanel extends JPanel implements TaskObserver {
 			public void run() {
 				if (urlToLoad == null) {
 					engine.load(null);
+					if (jsBridge != null)
+						jsBridge.clearListeners();
 					return;
 				}
 
@@ -470,6 +468,9 @@ public class SwingPanel extends JPanel implements TaskObserver {
 				url = tmp;
  
 				engine.load(tmp);
+				// Clear Cytoscape listeners?
+				if (jsBridge != null)
+					jsBridge.clearListeners();
 				enableControls();
 			}
 		});
@@ -488,49 +489,6 @@ public class SwingPanel extends JPanel implements TaskObserver {
 			btnForward.setEnabled(true);
 		else
 			btnForward.setEnabled(false);
-	}
-
-	@Override
-	public void allFinished(FinishStatus finishStatus) {
-		// System.out.println("All tasks finished");
-		callbackMethod = null;
-	}
-
-	@Override
-	public void taskFinished(ObservableTask task) {
-		String results = task.getResults(String.class);
-		// System.out.println("Task "+task+" finished: "+results);
-		logger.info("CyBrowser: results: '"+results+"'");
-		if (callbackMethod != null) {
-			String cb = callbackMethod; // 
-			callbackMethod = null;
-			Platform.runLater(new Runnable() {
-				@Override public void run() {
-					// System.out.println("Executing: "+cb+"(`"+results+"`)");
-					// We need to use templated strings to preserve newlines
-					// engine.executeScript(cb+"(`"+results+"`)");
-					JSObject jsobj = (JSObject) engine.executeScript("window");
-					jsobj.call(cb, results);
-				}
-			});
-		}
-	}
-
-	private void executeCommand(String command) {
-		TaskObserver observer = this;
-		// System.out.println("command = "+command);
-		logger.info("CyBrowser: executing command: '"+command+"'");
-		SwingUtilities.invokeLater(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					TaskIterator commandTasks = commandTaskFactory.createTaskIterator(observer, command);
-					taskManager.execute(commandTasks, observer);
-				} catch (Exception e) {
-					logger.error("CyBrowser: error processing command: "+e.getMessage());
-				}
-			}
-		});
 	}
 
 	private static String toURL(String str) {
@@ -654,13 +612,6 @@ public class SwingPanel extends JPanel implements TaskObserver {
 			double x = e.getX();
 			double y = e.getY();
 
-			// To put info into clipboard:
-			// final Clipboard clipboard = Clipboard.getSystemClipboard();
-     // final ClipboardContent content = new ClipboardContent();
-     // content.putString("Some text");
-     // content.putHtml("<b>Some</b> text");
-     // clipboard.setContent(content);
-
 			if (e.getButton() == MouseButton.SECONDARY || 
 			    (e.isControlDown() && e.getButton() == MouseButton.PRIMARY)) {
 
@@ -668,7 +619,8 @@ public class SwingPanel extends JPanel implements TaskObserver {
 									"function getAnchor() {\n"+
 									"  var elements = document.querySelectorAll(':hover');\n"+
 									"  lastElement = elements.item(elements.length-1);\n"+
-									"  if ((lastElement.tagName == 'FRAME') || (lastElement.tagName == 'IFRAME')) {\n"+
+									"  if ((lastElement != null) &&"+
+									"      ((lastElement.tagName == 'FRAME') || (lastElement.tagName == 'IFRAME'))) {\n"+
 									"     elements = lastElement.contentDocument.querySelectorAll(':hover');\n"+
 									"     lastElement = elements.item(elements.length-1);\n"+
 									"  }\n"+
@@ -678,12 +630,11 @@ public class SwingPanel extends JPanel implements TaskObserver {
 
 				anchor = null;
 				if (anchorElement instanceof Element) {
-					Element el = (Element)anchorElement;
-					if (el.getTagName().equalsIgnoreCase("A"))
+					Element el = findAnchor((Element)anchorElement);
+					if (el.getTagName().equalsIgnoreCase("A")) {
 						anchor = el;
+					}
 				}
-
-				// System.out.println("anchor = "+anchor);
 
 				// Determine if we have a selection
 				selection = (String) engine.executeScript("window.getSelection().toString()");
@@ -710,11 +661,8 @@ public class SwingPanel extends JPanel implements TaskObserver {
 		});
 	}
 
-	/*
-	// TODO: Figure out how to handle frames and base (for relative URLs)
-	private Element findAnchor(Element e, int x, int y) {
+	private Element findAnchor(Element e) {
 		// If we have a frame, we need to find the element within the frame
-		System.out.println("Tag name of element = "+e.getTagName());
 		while (e != null && !e.getTagName().equalsIgnoreCase("A")) {
 			Node n = ((Node)e).getParentNode();
 
@@ -722,24 +670,7 @@ public class SwingPanel extends JPanel implements TaskObserver {
 				n = n.getParentNode();
 			}
 			e = (Element)n;
-			System.out.println("e = "+e.getTagName());
 		}
 		return e;
-	}
-	*/
-
-	// This class provides methods that will be accessible from Javascript.
-	// Initially, the only method is the executeCyCommand method.
-	public class Bridge {
-		public void executeCyCommand(String command) {
-			// System.out.println("Bridge: executing '"+command+"'");
-			executeCommand(command);
-			callbackMethod = null;
-		}
-
-		public void executeCyCommandWithResults(String command, String callback) {
-			executeCommand(command);
-			callbackMethod = callback;
-		}
 	}
 }
