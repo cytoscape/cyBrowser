@@ -48,8 +48,8 @@ public class ListBrowsersTask extends AbstractTask implements ObservableTask {
 				for (String id: map.keySet()) {
 					CyBrowser b = map.get(id);
 					res += id+": ";
-					if (b.getTitle() != null) res += b.getTitle()+" ";
-					if (b.getURL() != null) res += "("+b.getURL()+") ";
+					if (b.getTitle(id) != null) res += b.getTitle(id)+" ";
+					if (b.getURL(id) != null) res += "("+b.getURL(id)+") ";
 					res += "\n";
 				}
 			}
@@ -63,8 +63,8 @@ public class ListBrowsersTask extends AbstractTask implements ObservableTask {
 				for (String id: map.keySet()) {
 					CyBrowser b = map.get(id);
 					jsonRes += "{\"id\": "+id;
-					if (b.getTitle() != null) jsonRes += ", \"title\":\""+b.getTitle()+"\"";
-					if (b.getURL() != null) jsonRes += ", \"url\":\""+b.getURL()+"\"";
+					if (b.getTitle(id) != null) jsonRes += ", \"title\":\""+b.getTitle(id)+"\"";
+					if (b.getURL(id) != null) jsonRes += ", \"url\":\""+b.getURL(id)+"\"";
 					jsonRes += "}\n";
 				}
 				jsonRes += "]";

@@ -83,7 +83,7 @@ public class DialogTask extends AbstractEmptyObservableTask {
 				if (br != null && br instanceof SwingBrowser)
 					browser = (SwingBrowser) br;
 				else if (br != null && br instanceof ResultsPanelBrowser) {
-					SwingPanel panel = br.getPanel();
+					SwingPanel panel = br.getPanel(id);
 					manager.unregisterCytoPanel((ResultsPanelBrowser)br);
 					browser = new SwingBrowser(manager, id, panel, title, debug);
 				} else if (br == null && resultsPanel) {

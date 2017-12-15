@@ -1,5 +1,6 @@
 package edu.ucsf.rbvi.cyBrowser.internal.model;
 
+import java.awt.Component;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -41,6 +42,8 @@ public class CyBrowserManager {
 			public void run() {
 				registrar.registerService(browser, CytoPanelComponent.class, new Properties());
 				cytoPanel.setState(CytoPanelState.DOCK);
+				int index = cytoPanel.indexOfComponent(browser.getComponent());
+				cytoPanel.setSelectedIndex(index);
 			}
 		});
 	}
@@ -99,6 +102,7 @@ public class CyBrowserManager {
 		}
 	}
 
+	// FIXME: This will need to change for tabbed browsing
 	public void closeBrowser(String id) {
 		CyBrowser browser = getBrowser(id);
 		if (browser == null) {

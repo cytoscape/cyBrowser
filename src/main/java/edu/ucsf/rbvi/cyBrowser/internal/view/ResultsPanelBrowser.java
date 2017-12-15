@@ -45,13 +45,13 @@ public class ResultsPanelBrowser implements CytoPanelComponent2, CyBrowser {
 		
 	}
 
-	public SwingPanel getPanel() { return panel; }
+	public SwingPanel getPanel(String id) { return panel; }
 
 	public void loadURL(final String url) {
 		panel.loadURL(url);
 	}
 
-	public String getURL() { return panel.getURL(); }
+	public String getURL(String id) { return panel.getURL(); }
 
 	public void loadText(final String text) {
 		panel.loadText(text);
@@ -72,6 +72,8 @@ public class ResultsPanelBrowser implements CytoPanelComponent2, CyBrowser {
 
 	@Override
 	public String getTitle() { return title; }
+
+	public String getTitle(String id) { return title; }
 
 	@Override
 	public CytoPanelName getCytoPanelName() { return CytoPanelName.EAST; }

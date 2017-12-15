@@ -1,22 +1,43 @@
 package edu.ucsf.rbvi.cyBrowser.internal.view;
 
+import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+
+import java.net.URL;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
 import javax.swing.JDialog;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
 import javax.swing.WindowConstants;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import org.cytoscape.service.util.CyServiceRegistrar;
+import org.cytoscape.util.swing.IconManager;
 import edu.ucsf.rbvi.cyBrowser.internal.model.CyBrowser;
 import edu.ucsf.rbvi.cyBrowser.internal.model.CyBrowserManager;
 
-public class SwingBrowser extends JDialog implements CyBrowser {
+public class SwingBrowser extends JDialog implements CyBrowser, ChangeListener {
 
 	private final CyBrowserManager manager;
-	private final SwingPanel panel;
-	private final String id;
+	private SwingPanel currentPanel;
+	// private final String id;
+	private final Map<String,SwingPanel> idMap;
+	private final Map<String,JButton> buttonMap;
 	private String initialTitle = null;
+	private JTabbedPane tabbedPane = null;
 
 	public SwingBrowser(CyBrowserManager manager, String id, SwingPanel reuse, String title, 
 	                    boolean showDebug) {
@@ -25,15 +46,22 @@ public class SwingBrowser extends JDialog implements CyBrowser {
 		if (title != null) {
 			setTitle(title);
 			this.initialTitle = title;
+		} else {
+			setTitle("CyBrowser");
 		}
-		this.id = id;
-		this.panel = new SwingPanel(manager, id, this, reuse, true, showDebug);
-		getContentPane().add(panel);
+
+		idMap = new HashMap<>();
+		buttonMap = new HashMap<>();
+		this.currentPanel = new SwingPanel(manager, id, this, reuse, true, showDebug);
+		
+		tabbedPane = new JTabbedPane();
+		tabbedPane.addChangeListener(this);
+		getContentPane().add(tabbedPane);
+		addTab(id, currentPanel);
 
 		addWindowListener(new WindowAdapter() {
 			public void windowClosed(WindowEvent evt) {
-				System.out.println("Window Closed");
-				panel.loadURL(null);
+				currentPanel.loadURL(null);
 				manager.removeBrowser(SwingBrowser.this);
 			}
 		});
@@ -50,15 +78,22 @@ public class SwingBrowser extends JDialog implements CyBrowser {
 		if (title != null) {
 			setTitle(title);
 			this.initialTitle = title;
+		} else {
+			setTitle("CyBrowser");
 		}
-		this.id = id;
-		panel = new SwingPanel(manager, id, this, null, true, showDebug);
-		getContentPane().add(panel);
+
+		idMap = new HashMap<>();
+		buttonMap = new HashMap<>();
+		currentPanel = new SwingPanel(manager, id, this, null, true, showDebug);
+
+		tabbedPane = new JTabbedPane();
+		tabbedPane.addChangeListener(this);
+		getContentPane().add(tabbedPane);
+		addTab(id, currentPanel);
 
 		addWindowListener(new WindowAdapter() {
 			public void windowClosed(WindowEvent evt) {
-				System.out.println("Window Closed");
-				panel.loadURL(null);
+				currentPanel.loadURL(null);
 				manager.removeBrowser(id);
 			}
 		});
@@ -68,19 +103,148 @@ public class SwingBrowser extends JDialog implements CyBrowser {
 		pack();
 	}
 
-	public String getTitle() { return initialTitle; }
-
-	public SwingPanel getPanel() { return panel; }
-
-	public void loadURL(final String url) {
-		panel.loadURL(url);
+	public String getTitle(String id) { 
+		if (id == null)
+			return initialTitle;
+		if (idMap.containsKey(id)) 
+			return idMap.get(id).getTitle();
+		return null;
 	}
 
-	public String getURL() {
-		return panel.getURL();
+	public String getURL(String id) {
+		if (id == null)
+			return currentPanel.getURL();
+		if (idMap.containsKey(id)) 
+			return idMap.get(id).getURL();
+		return null;
+	}
+
+	public SwingPanel getPanel(String id) { 
+		if (id == null)
+			return currentPanel; 
+		if (idMap.containsKey(id)) 
+			return idMap.get(id);
+		return null;
+	}
+
+	public void loadURL(final String url) {
+		currentPanel.loadURL(url);
+		// Initialize the title.  This will be the title that's used
+		// if the page doesn't have one
+		try {
+			URL u = new URL(url);
+			String urlTitle = u.getHost()+u.getPath();
+
+			int tab = tabbedPane.indexOfComponent(currentPanel);
+			tabbedPane.setTabComponentAt(tab, createTabComponent(urlTitle, currentPanel.getId()));
+		} catch(Exception e) {}
 	}
 
 	public void loadText(final String text) {
-		panel.loadText(text);
+		currentPanel.loadText(text);
+	}
+
+	public void setTitle(String id, String title) {
+		if (idMap.containsKey(id)) {
+			SwingPanel panel = idMap.get(id);
+			int tab = tabbedPane.indexOfComponent(panel);
+			tabbedPane.setTabComponentAt(tab, createTabComponent(title, id));
+
+			if (panel.equals(currentPanel))
+				setTitle(title);
+		}
+	}
+
+	public void addTab(String id, String title, boolean showDebug) {
+		currentPanel = new SwingPanel(manager, id, this, null, true, showDebug);
+		addTab(id, currentPanel);
+	}
+
+	private void addTab(String id, SwingPanel panel) {
+		tabbedPane.addTab(panel.getTitle(), panel);
+		idMap.put(id, panel);
+		String title = panel.getTitle();
+		if (title == null || title.length() == 0)
+			title = initialTitle;
+
+		// Get the tab
+		int tab = tabbedPane.indexOfComponent(panel);
+		tabbedPane.setTabComponentAt(tab, createTabComponent(title, id));
+		tabbedPane.setSelectedComponent(panel);
+
+		if (idMap.size() > 1) {
+			for (String btnId: buttonMap.keySet()) {
+				buttonMap.get(btnId).setEnabled(true);
+			}
+		}
+
+	}
+
+	private JPanel createTabComponent(String title, String id) {
+		JPanel pnlTab = new JPanel(new GridBagLayout());
+		pnlTab.setOpaque(false);
+		if (title == null || title.length() == 0)
+			title = "Empty Tab";
+		int len = Math.min(title.length(), 20);
+		JLabel lblTitle = new JLabel(title.substring(0, len));
+		lblTitle.setFont(lblTitle.getFont().deriveFont(12.0f));
+		JButton btnClose = new JButton(IconManager.ICON_CLOSE); 
+		buttonMap.put(id, btnClose);
+
+		// Always start out false
+		if (idMap.size() > 1)
+			btnClose.setEnabled(true);
+		else
+			btnClose.setEnabled(false);
+
+		btnClose.setFont(manager.getRegistrar().getService(IconManager.class).getIconFont(12.0f));
+		btnClose.setBorderPainted(false);
+		btnClose.setContentAreaFilled(false);
+		btnClose.setFocusPainted(false);
+		btnClose.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
+
+		btnClose.addActionListener(new CloseActionHandler(id));
+		GridBagConstraints gbc = new GridBagConstraints();
+		gbc.gridx = 0;
+		gbc.gridy = 0;
+		gbc.weightx = 1;
+
+		pnlTab.add(lblTitle, gbc);
+
+		gbc.gridx++;
+		gbc.weightx = 0;
+		pnlTab.add(btnClose, gbc);
+		return pnlTab;
+	}
+
+	@Override
+	public void stateChanged(ChangeEvent e) {
+		currentPanel = (SwingPanel)tabbedPane.getSelectedComponent();
+		String ttl = currentPanel.getTitle();
+		if (ttl != null)
+			setTitle(ttl);
+		else
+			setTitle("CyBrowser");
+	}
+
+	public class CloseActionHandler implements ActionListener {
+		String id;
+		public CloseActionHandler(String id) {
+			this.id = id;
+		}
+
+		public void actionPerformed(ActionEvent evt) {
+			SwingPanel panel = idMap.get(id);
+			if (panel != null) {
+				panel.loadURL(null);
+				tabbedPane.remove(panel);
+				idMap.remove(id);
+				buttonMap.remove(id);
+				manager.removeBrowser(id);
+				currentPanel = (SwingPanel)tabbedPane.getSelectedComponent();
+				if (idMap.size() == 1)
+					buttonMap.get(currentPanel.getId()).setEnabled(false);
+			}
+		}
 	}
 }

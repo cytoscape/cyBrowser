@@ -35,6 +35,7 @@ import javafx.scene.text.TextAlignment;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebEvent;
 import javafx.scene.web.WebView;
+import javafx.stage.Stage;
 import javafx.util.Callback;
  
 import java.awt.BorderLayout;
@@ -90,13 +91,14 @@ public class SwingPanel extends JPanel {
 
 	private final CyServiceRegistrar registrar;
 	private final CyBrowserManager manager;
-	private final JDialog parent;
+	private final SwingBrowser parent;
 	private final JPanel panel;
 	private final boolean showURL;
 	private final boolean showDebug;
 	private String callbackMethod = null;
 	private String url = null;
 	private boolean suppressLink = false;
+	private String title = null;
 
 	// Three class variables to help with our context menus
 	private String selection;
@@ -110,7 +112,7 @@ public class SwingPanel extends JPanel {
 
 	final Logger logger = Logger.getLogger(CyUserLog.NAME);
  
-	public SwingPanel(CyBrowserManager manager, String id, JDialog parentDialog, SwingPanel reuse, 
+	public SwingPanel(CyBrowserManager manager, String id, SwingBrowser parentDialog, SwingPanel reuse, 
 	                  boolean showURL, boolean showDebug) {
 		super(new BorderLayout());
 		this.manager = manager;
@@ -130,7 +132,14 @@ public class SwingPanel extends JPanel {
 		return engine.getLocation();
 	}
 
-	
+	public String getId() {
+		return id;
+	}
+
+	public String getTitle() {
+		return title;
+	}
+
 	private void initComponents(SwingPanel reuse) {
 		if (reuse == null)
 			createScene();
@@ -248,8 +257,9 @@ public class SwingPanel extends JPanel {
 						SwingUtilities.invokeLater(new Runnable() {
 							@Override 
 							public void run() {
+								title = newValue;
 								if (parent != null)
-									parent.setTitle(newValue);
+									parent.setTitle(id, newValue);
 							}
 						});
 					}
@@ -265,6 +275,9 @@ public class SwingPanel extends JPanel {
 						// alert.getDialogPane().setContentText(event.getData());
 						alert.getDialogPane().setContent(txt);
 						alert.getDialogPane().getButtonTypes().add(ButtonType.OK);
+						Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+						stage.setAlwaysOnTop(true);
+						stage.toFront();
 						alert.showAndWait();
 					}
 				});
@@ -276,6 +289,9 @@ public class SwingPanel extends JPanel {
 						confirm.setTitle("CyBrowser Confirmation");
 						confirm.getDialogPane().setContentText(message);
 						confirm.getDialogPane().getButtonTypes().addAll(ButtonType.YES, ButtonType.NO );
+						Stage stage = (Stage) confirm.getDialogPane().getScene().getWindow();
+						stage.setAlwaysOnTop(true);
+						stage.toFront();
 						Optional<ButtonType> result = confirm.showAndWait();
 						if (result.isPresent() && result.get() == ButtonType.YES)
 							return true;
@@ -466,8 +482,8 @@ public class SwingPanel extends JPanel {
 				}
 
 				url = tmp;
- 
 				engine.load(tmp);
+
 				// Clear Cytoscape listeners?
 				if (jsBridge != null)
 					jsBridge.clearListeners();
@@ -510,10 +526,10 @@ public class SwingPanel extends JPanel {
     clipboard.setContent(content);
 	}
 
-	private void openNewAction() {
+	private void openNewAction(boolean openTab) {
 		// Choose the right ID and title
 		CyBrowser current = manager.getBrowser(this.id);
-		String title = current.getTitle();
+		String title = current.getTitle(this.id);
 		if (title != null)
 			title = title + " "+manager.browserCount;
 
@@ -525,10 +541,15 @@ public class SwingPanel extends JPanel {
 
 		// Open the window or tab
 		if (parent != null) {
-			// Open a new window
-			SwingBrowser sb = new SwingBrowser(manager, newId, title, showDebug);
-			sb.setVisible(true);
-			browser = sb;
+			if (!openTab) {
+				// Open a new window
+				SwingBrowser sb = new SwingBrowser(manager, newId, title, showDebug);
+				sb.setVisible(true);
+				browser = sb;
+			} else {
+				browser = parent;
+				parent.addTab(newId, title, showDebug);
+			}
 		} else {
 			// Open a new tab
 			browser = new ResultsPanelBrowser(manager, newId, title);
@@ -582,9 +603,18 @@ public class SwingPanel extends JPanel {
 		{
 			MenuItem copyLink = new MenuItem("Copy link location");
 			copyLink.setOnAction(e -> copyLinkAction());
-			MenuItem openNew = new MenuItem("Open in new window/tab");
-			openNew.setOnAction(e -> openNewAction());
-			hrefContextMenu.getItems().addAll(copyLink, openNew);
+			hrefContextMenu.getItems().add(copyLink);
+			if (parent != null) {
+				MenuItem openNew = new MenuItem("Open in new window");
+				openNew.setOnAction(e -> openNewAction(false));
+				MenuItem openNewTab = new MenuItem("Open in new tab");
+				openNewTab.setOnAction(e -> openNewAction(true));
+				hrefContextMenu.getItems().addAll(openNew, openNewTab);
+			} else {
+				MenuItem openNew = new MenuItem("Open in new tab");
+				openNew.setOnAction(e -> openNewAction(true));
+				hrefContextMenu.getItems().add(openNew);
+			}
 		}
 
 		// Selection context menu
@@ -600,11 +630,21 @@ public class SwingPanel extends JPanel {
 		{
 			MenuItem copyLink = new MenuItem("Copy link location");
 			copyLink.setOnAction(e -> copyLinkAction());
-			MenuItem openNew = new MenuItem("Open in new window/tab");
-			openNew.setOnAction(e -> openNewAction());
+			selectedAnchorContextMenu.getItems().add(copyLink);
+			if (parent != null) {
+				MenuItem openNew = new MenuItem("Open in new window");
+				openNew.setOnAction(e -> openNewAction(false));
+				MenuItem openNewTab = new MenuItem("Open in new tab");
+				openNewTab.setOnAction(e -> openNewAction(true));
+				selectedAnchorContextMenu.getItems().addAll(openNew, openNewTab);
+			} else {
+				MenuItem openNew = new MenuItem("Open in new tab");
+				openNew.setOnAction(e -> openNewAction(true));
+				selectedAnchorContextMenu.getItems().add(openNew);
+			}
 			MenuItem copy = new MenuItem("Copy text");
 			copy.setOnAction(e -> copyAction());
-			selectedAnchorContextMenu.getItems().addAll(copyLink, openNew, copy);
+			selectedAnchorContextMenu.getItems().add(copy);
 		}
 
 
@@ -631,7 +671,7 @@ public class SwingPanel extends JPanel {
 				anchor = null;
 				if (anchorElement instanceof Element) {
 					Element el = findAnchor((Element)anchorElement);
-					if (el.getTagName().equalsIgnoreCase("A")) {
+					if (el != null && el.getTagName().equalsIgnoreCase("A")) {
 						anchor = el;
 					}
 				}

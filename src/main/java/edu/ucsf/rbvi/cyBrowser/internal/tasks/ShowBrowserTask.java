@@ -62,7 +62,7 @@ public class ShowBrowserTask extends AbstractEmptyObservableTask {
 				if (br != null && br instanceof ResultsPanelBrowser)
 					browser = (ResultsPanelBrowser) br;
 				else if (br != null && br instanceof SwingBrowser) {
-					SwingPanel panel = br.getPanel();
+					SwingPanel panel = br.getPanel(id);
 					((SwingBrowser)br).setVisible(false);
 					browser = new ResultsPanelBrowser(manager, id, panel, title);
 				} else {
