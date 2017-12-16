@@ -43,6 +43,7 @@ import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -138,6 +139,35 @@ public class SwingPanel extends JPanel {
 
 	public String getTitle() {
 		return title;
+	}
+
+	public String execute(final String script) {
+		final String[] returnVal = new String[1]; // I *hate* Java sometimes...
+
+		// We're already on the Application Thread
+		if (Platform.isFxApplicationThread()) {
+			return ((JSObject) engine.executeScript(script)).toString();
+		}
+
+		// Run on the application thread
+		final CountDownLatch doneLatch = new CountDownLatch(1);
+		final WebEngine engineTemp = engine;
+		Platform.runLater(new Runnable() {
+			public void run() {
+				try {
+					Object obj = engineTemp.executeScript(script);
+					returnVal[0] = obj.toString();
+				} finally {
+					doneLatch.countDown();
+				}
+			}
+		});
+
+		try {
+			doneLatch.await();
+		} catch (InterruptedException e) {
+		}
+		return returnVal[0];
 	}
 
 	private void initComponents(SwingPanel reuse) {

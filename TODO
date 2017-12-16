@@ -1,4 +1,6 @@
 Initial prototype complete.
 
 TODO:
-	1) Configure to optionally live in ResultsPanel
+	1) Add additional listeners as needed
+  2) See if size can be controlled
+  3) Provide better control of popups (alerts, etc.)

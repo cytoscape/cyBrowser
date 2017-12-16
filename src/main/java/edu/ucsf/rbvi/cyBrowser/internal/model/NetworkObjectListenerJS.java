@@ -1,5 +1,7 @@
 package edu.ucsf.rbvi.cyBrowser.internal.model;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import javafx.application.Platform;
@@ -15,6 +17,10 @@ import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNode;
 import org.cytoscape.model.CyTable;
 import org.cytoscape.model.CyTableUtil;
+import org.cytoscape.model.events.AboutToRemoveEdgesEvent;
+import org.cytoscape.model.events.AboutToRemoveEdgesListener;
+import org.cytoscape.model.events.AboutToRemoveNodesEvent;
+import org.cytoscape.model.events.AboutToRemoveNodesListener;
 import org.cytoscape.model.events.RowsSetEvent;
 import org.cytoscape.model.events.RowsSetListener;
 import org.cytoscape.service.util.CyServiceRegistrar;
@@ -22,18 +28,18 @@ import org.cytoscape.service.util.CyServiceRegistrar;
 import org.apache.log4j.Logger;
 
 
-public class RowsSetListenerJS extends JSListener implements RowsSetListener {
+public class NetworkObjectListenerJS extends JSListener 
+                                     implements RowsSetListener,
+                                                AboutToRemoveEdgesListener, 
+                                                AboutToRemoveNodesListener {
 	CyTable table = null;
-	WebEngine engine;
-	String callback;
 	CyNetwork network;
 	Class<? extends CyIdentifiable> type;
 
-	RowsSetListenerJS(WebEngine engine, CyNetwork network, String callback, Class<? extends CyIdentifiable> type) {
+	NetworkObjectListenerJS(WebEngine engine, CyNetwork network, String callback, Class<? extends CyIdentifiable> type) {
+		super(engine, callback);
 		if (network != null)
 			table = network.getTable(type, CyNetwork.LOCAL_ATTRS);
-		this.engine = engine;
-		this.callback = callback;
 		this.network = network;
 		this.type = type;
 	}
@@ -50,23 +56,33 @@ public class RowsSetListenerJS extends JSListener implements RowsSetListener {
 		else
 			return;
 
+		String s = getJSON(selection);
+		doCallback(callback, s);
+	}
+
+	@Override
+	public void handleEvent(AboutToRemoveNodesEvent e) {
+		Collection<CyNode> nodes = e.getNodes();
+		String s = getJSON(new ArrayList<CyNode>(nodes));
+		doCallback(callback, s);
+	}
+
+	@Override
+	public void handleEvent(AboutToRemoveEdgesEvent e) {
+		Collection<CyEdge> edges = e.getEdges();
+		String s = getJSON(new ArrayList<CyEdge>(edges));
+		doCallback(callback, s);
+	}
+
+	private String getJSON(List<? extends CyIdentifiable> ids) {
 		String s = "[";
-		for (CyIdentifiable id: selection) {
+		for (CyIdentifiable id: ids) {
 			s += toJSON(id)+",";
 		}
 		if (s.length() > 1)
 			s = s.substring(0, s.length()-1);
 		s += "]";
-
-		final String idString = s;
-
-		Platform.runLater(new Runnable() {
-			@Override 
-			public void run() {
-				JSObject windowObject = (JSObject)engine.executeScript("window");
-				windowObject.call(callback, idString);
-			}
-		});
+		return s;
 	}
 
 	private String toJSON(CyIdentifiable id) {

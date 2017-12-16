@@ -2,6 +2,7 @@ package edu.ucsf.rbvi.cyBrowser.internal.model;
 
 import java.util.Properties;
 
+import javafx.application.Platform;
 import javafx.scene.web.WebEngine;
 
 import netscape.javascript.JSObject;
@@ -21,10 +22,17 @@ import org.apache.log4j.Logger;
 
 
 public abstract class JSListener {
+	protected WebEngine engine;
+	protected String callback;
+
 	public enum ListenerType {
 		NODESELECTION("Node Selection","nodeSelection"),
 		EDGESELECTION("Edge Selection","edgeSelection"),
+		NODEDELETION("Node About to be Deleted","nodeDeletion"),
+		EDGEDELETION("Edge About to be Deleted","edgeDeletion"),
 		NETWORKLOADED("Network Loaded","networkLoaded"),
+		CURRENTNETWORK("Set Current Network","setCurrentNetwork"),
+		CURRENTVIEW("Set Current Network View","setCurrentNetworkView"),
 		SESSIONLOADED("Session Loaded","sessionLoaded");
 
 		String name;
@@ -44,5 +52,23 @@ public abstract class JSListener {
 		}
 
 	};
+
+	JSListener(WebEngine engine, String callback) {
+		this.engine = engine;
+		this.callback = callback;
+	}
+
+	protected void doCallback(String callback, final String json) {
+		Platform.runLater(new Runnable() {
+			@Override 
+			public void run() {
+				JSObject windowObject = (JSObject)engine.executeScript("window");
+				if (json != null)
+					windowObject.call(callback, json);
+				else
+					windowObject.call(callback);
+			}
+		});
+	}
 
 }

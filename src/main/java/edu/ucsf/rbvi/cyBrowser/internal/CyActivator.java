@@ -28,6 +28,7 @@ import edu.ucsf.rbvi.cyBrowser.internal.tasks.CloseBrowserTaskFactory;
 import edu.ucsf.rbvi.cyBrowser.internal.tasks.DialogTaskFactory;
 import edu.ucsf.rbvi.cyBrowser.internal.tasks.HideBrowserTaskFactory;
 import edu.ucsf.rbvi.cyBrowser.internal.tasks.ListBrowsersTaskFactory;
+import edu.ucsf.rbvi.cyBrowser.internal.tasks.SendTaskFactory;
 import edu.ucsf.rbvi.cyBrowser.internal.tasks.ShowBrowserTaskFactory;
 import edu.ucsf.rbvi.cyBrowser.internal.tasks.VersionTaskFactory;
 
@@ -131,6 +132,21 @@ public class CyActivator extends AbstractCyActivator {
 			props.setProperty(COMMAND_SUPPORTS_JSON, "true");
 			props.setProperty(COMMAND_EXAMPLE_JSON, "{}");
 			registerService(bc, hideBrowser, TaskFactory.class, props);
+		}
+		
+		{
+			SendTaskFactory sendBrowser = new SendTaskFactory(manager);
+			Properties props = new Properties();
+			props.setProperty(COMMAND_NAMESPACE, "cybrowser");
+			props.setProperty(COMMAND, "send");
+			props.setProperty(COMMAND_DESCRIPTION, "Send (execute) javascript commands to a browser");
+			props.setProperty(COMMAND_LONG_DESCRIPTION, 
+			                  "Send the text to the browser indicated by the ``id`` and return "+
+												"the response, if any.  Note that the JSON ``result`` field could either "+
+												"be a bare string or JSON formatted text.");
+			props.setProperty(COMMAND_SUPPORTS_JSON, "true");
+			props.setProperty(COMMAND_EXAMPLE_JSON, "{\"browserId\":\"my window\", \"result\":[1,2,3,4]}");
+			registerService(bc, sendBrowser, TaskFactory.class, props);
 		}
 		
 		{

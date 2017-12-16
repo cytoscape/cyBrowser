@@ -12,16 +12,13 @@ import org.apache.log4j.Logger;
 
 
 public class SessionLoadedListenerJS extends JSListener implements SessionLoadedListener {
-	WebEngine engine;
-	String callback;
 
 	SessionLoadedListenerJS(WebEngine engine, String callback) {
-		this.engine = engine;
-		this.callback = callback;
+		super(engine, callback);
 	}
 
 	@Override
 	public void handleEvent(SessionLoadedEvent e) {
-		engine.executeScript(callback);
+		doCallback(callback, null);
 	}
 }

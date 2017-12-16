@@ -7,12 +7,16 @@ import javafx.scene.web.WebEngine;
 import netscape.javascript.JSObject;
 
 import org.cytoscape.application.CyUserLog;
+import org.cytoscape.application.events.SetCurrentNetworkListener;
+import org.cytoscape.application.events.SetCurrentNetworkViewListener;
 import org.cytoscape.command.StringToModel;
 import org.cytoscape.model.CyEdge;
 import org.cytoscape.model.CyIdentifiable;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNode;
 import org.cytoscape.model.CyTable;
+import org.cytoscape.model.events.AboutToRemoveEdgesListener;
+import org.cytoscape.model.events.AboutToRemoveNodesListener;
 import org.cytoscape.model.events.NetworkAddedListener;
 import org.cytoscape.model.events.RowsSetEvent;
 import org.cytoscape.model.events.RowsSetListener;
@@ -43,6 +47,18 @@ public class JSListenerFactory {
 		case NODESELECTION:
 		case EDGESELECTION:
 			return createListener(registrar, engine, type, null, callback);
+		case CURRENTNETWORK:
+			{
+				CurrentNetworkListenerJS listener = new CurrentNetworkListenerJS(engine, callback);
+				registrar.registerService(listener, SetCurrentNetworkListener.class, new Properties());
+				return listener;
+			}
+		case CURRENTVIEW:
+			{
+				CurrentNetworkViewListenerJS listener = new CurrentNetworkViewListenerJS(engine, callback);
+				registrar.registerService(listener, SetCurrentNetworkViewListener.class, new Properties());
+				return listener;
+			}
 		default:
 			return null;
 		}
@@ -53,19 +69,29 @@ public class JSListenerFactory {
 		JSListener.ListenerType listenerType = JSListener.ListenerType.getType(type);
 		if (listenerType == null) return null;
 
-		Class<? extends CyIdentifiable> objType = null;
+		Class listenerClass;
+		JSListener listener;
 		switch(listenerType) {
 		case NODESELECTION:
-			objType = CyNode.class;
+			listenerClass = RowsSetListener.class;
+			listener = new NetworkObjectListenerJS(engine, network, callback, CyNode.class);
 			break;
 		case EDGESELECTION:
-			objType = CyEdge.class;
+			listenerClass = RowsSetListener.class;
+			listener = new NetworkObjectListenerJS(engine, network, callback, CyEdge.class);
+			break;
+		case EDGEDELETION:
+			listenerClass = AboutToRemoveEdgesListener.class;
+			listener = new NetworkObjectListenerJS(engine, network, callback, CyEdge.class);
+			break;
+		case NODEDELETION:
+			listenerClass = AboutToRemoveNodesListener.class;
+			listener = new NetworkObjectListenerJS(engine, network, callback, CyNode.class);
 			break;
 		default:
 			return null;
 		}
-		RowsSetListenerJS listener = new RowsSetListenerJS(engine, network, callback, objType);
-		registrar.registerService(listener, RowsSetListener.class, new Properties());
+		registrar.registerService(listener, listenerClass, new Properties());
 		return listener;
 	}
 }

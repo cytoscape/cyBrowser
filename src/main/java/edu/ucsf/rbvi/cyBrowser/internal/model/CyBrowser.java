@@ -1,4 +1,5 @@
 package edu.ucsf.rbvi.cyBrowser.internal.model;
+import netscape.javascript.JSObject;
 import edu.ucsf.rbvi.cyBrowser.internal.view.SwingPanel;
 
 public interface CyBrowser {
