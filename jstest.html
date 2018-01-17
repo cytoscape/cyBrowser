@@ -28,8 +28,8 @@
 				<body>
 								<h1>Test</h1>
 								<!--input type="button" onClick="window.open('cycmd:view fit content', '_blank');" value="Fit Content"/-->
-								<input type="button" onclick="cybrowser.executeCyCommand('view fit content', 'getResults');" value="Fit Content"/>
-								<input type="button" onclick="cybrowser.executeCyCommand('network select nodeList=YKR026C', 'getResults');" value="Select YkR026C"/>
+								<input type="button" onclick="cybrowser.executeCyCommand('view fit content');" value="Fit Content"/>
+								<input type="button" onclick="cybrowser.executeCyCommandWithResults('network select nodeList=YKR026C', 'getResults');" value="Select YkR026C"/>
 								<input type="button" onclick="cybrowser.registerSelectionListeners('nodeSelection', 'current', 'nodeSelectionChanged');" value="Register node listener"/>
 								<input type="button" onclick="cybrowser.registerSelectionListeners('edgeSelection', 'current', 'edgeSelectionChanged');" value="Register edge listener"/>
 								<!-- input type="button" onClick="location.href='http://www.cgl.ucsf.edu';" value="CGL"/-->
