@@ -39,9 +39,15 @@ import javafx.stage.Stage;
 import javafx.util.Callback;
  
 import java.awt.BorderLayout;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLConnection;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 
@@ -63,7 +69,16 @@ import javax.swing.SwingUtilities;
 
 import netscape.javascript.JSObject;
 
+import org.apache.http.Header;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+
 import org.cytoscape.service.util.CyServiceRegistrar;
+import org.cytoscape.util.swing.FileUtil;
 import org.cytoscape.util.swing.IconManager;
 
 import org.cytoscape.application.CyUserLog;
@@ -100,6 +115,9 @@ public class SwingPanel extends JPanel {
 	private String url = null;
 	private boolean suppressLink = false;
 	private String title = null;
+
+	private String lastTitle = null;
+	private String lastText = null;
 
 	// Three class variables to help with our context menus
 	private String selection;
@@ -398,9 +416,21 @@ public class SwingPanel extends JPanel {
 											suppressLink = false;
 										} else {
 											String href = ((Element)ev.getTarget()).getAttribute("href");
+											String target = ((Element)ev.getTarget()).getAttribute("target");
 											if (href != null && href.startsWith("cycmd:")) {
 												String command = href.substring("cycmd:".length());
 												jsBridge.executeCommand(command);
+												ev.preventDefault();
+												ev.stopPropagation();
+											} else if (href != null && target != null && target.equalsIgnoreCase("_blank")) {
+												anchor = (Element)ev.getTarget();
+												openNewAction(true);
+												ev.preventDefault();
+												ev.stopPropagation();
+											} else {
+												CyBrowser current = manager.getBrowser(id);
+												lastTitle = current.getTitle(id);
+												lastText = txtURL.getText();
 											}
 										}
 									}
@@ -425,6 +455,29 @@ public class SwingPanel extends JPanel {
 								alert.getDialogPane().setStyle("-fx-padding: 4px,4px,4px,4px;");
 								alert.getDialogPane().setContent(text);
 								alert.showAndWait();
+						} else if (newState == Worker.State.CANCELLED) {
+							try{
+								URL targ = new URL(txtURL.getText());
+								URLConnection conn =  targ.openConnection();
+								Map<String, List<String>> map = conn.getHeaderFields();
+								List<String> contentTypeList = map.get("Content-Type");
+								if (contentTypeList != null && !contentTypeList.isEmpty()) {
+									String contentType = contentTypeList.get(0);
+									if (contentType.equalsIgnoreCase("text/html"))
+										return;
+
+									// Downloading
+									downloadAction(txtURL.getText());
+
+									// Reset our title, etc.
+									CyBrowser current = manager.getBrowser(id);
+									String title = current.getTitle(id);
+									parent.setTitle(id, lastTitle);
+									txtURL.setText(lastText);
+								}
+							} catch (Exception e) {
+								logger.error("Failed to download '"+txtURL.getText()+"': "+e.getMessage());
+							}
 						}
 					}
 				});
@@ -556,6 +609,64 @@ public class SwingPanel extends JPanel {
     clipboard.setContent(content);
 	}
 
+	private void downloadAction() {
+		String targ = anchor.toString();
+		downloadAction(targ);
+	}
+
+	private void downloadAction(String targ) {
+		FileUtil fileUtil = registrar.getService(FileUtil.class);
+
+		try {
+			URL urlTarg = new URL(targ);
+			String fileName = urlTarg.getFile();
+
+			if (fileName.charAt(0) == '/')
+				fileName = fileName.substring(1);
+			// Get a connection
+			CloseableHttpClient client = HttpClients.createDefault();
+			HttpGet request = new HttpGet(targ);
+			CloseableHttpResponse response = client.execute(request);
+
+			if (response.getStatusLine().getStatusCode() == 200) {
+				final String fn = fileName;
+				SwingUtilities.invokeLater( new Runnable() {
+					public void run() {
+						// File chooser to get a file
+						File file = fileUtil.getFile(parent, "Name of downloaded file", FileUtil.SAVE, null, fn, null, new ArrayList<>());
+						if (file == null) return;
+
+						try {
+							Thread t = new Thread(new Runnable() {
+								public void run() {
+									// Download (in a separate thread?)
+									logger.info("Downloading file: "+file.toString()+" from "+targ);
+									try {
+										HttpEntity entity = response.getEntity();
+										if (entity != null) {
+       	 							FileOutputStream outstream = new FileOutputStream(file);
+       	   			  		entity.writeTo(outstream);
+										}
+									} catch (Exception e) {
+										logger.error("IO error downloading file: '"+file.toString()+"' from '"+targ+"': "+e.getMessage());
+										return;
+									}
+									logger.info("Downloaded file: "+file.toString());
+								}
+							});
+							t.start();
+						} catch(Exception e) {
+							logger.error("Unable to open file: '"+file.toString()+"': "+e.getMessage());
+						}
+					}
+				});
+			}
+		} catch (Exception e) {
+			logger.error("Error downloading file from: '"+targ+"': "+e.getMessage());
+		}
+
+	}
+
 	private void openNewAction(boolean openTab) {
 		// Choose the right ID and title
 		CyBrowser current = manager.getBrowser(this.id);
@@ -645,6 +756,9 @@ public class SwingPanel extends JPanel {
 				openNew.setOnAction(e -> openNewAction(true));
 				hrefContextMenu.getItems().add(openNew);
 			}
+			MenuItem download = new MenuItem("Download to file");
+			download.setOnAction(e -> downloadAction());
+			hrefContextMenu.getItems().add(download);
 		}
 
 		// Selection context menu

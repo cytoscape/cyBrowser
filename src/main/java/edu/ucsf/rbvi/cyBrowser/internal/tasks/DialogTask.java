@@ -54,6 +54,12 @@ public class DialogTask extends AbstractEmptyObservableTask {
 	          context="nogui")
 	public String id = null;
 
+	@Tunable (description="Open in new tab", 
+	          longDescription="If the browser with the specified ID already exists, just add a new tab",
+	          exampleStringValue="false",
+	          context="nogui")
+	public boolean newTab = false;
+
 	@Tunable (description="Show debug tools", 
 	          longDescription="Whether or not to show the web programmer debugging tools",
 	          exampleStringValue="false",
@@ -98,7 +104,7 @@ public class DialogTask extends AbstractEmptyObservableTask {
 					br = (CyBrowser) browser;
 				}
 				if (url != null && url.length() > 3) {
-					br.loadURL(url);
+					br.loadURL(url, newTab);
 				} else if (text != null && text.length() > 0) {
 					br.loadText(text);
 				}

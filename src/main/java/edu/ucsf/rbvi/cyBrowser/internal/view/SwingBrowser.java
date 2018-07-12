@@ -23,6 +23,7 @@ import javax.swing.JTabbedPane;
 import javax.swing.WindowConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.UIManager;
 
 import org.cytoscape.service.util.CyServiceRegistrar;
 import org.cytoscape.util.swing.IconManager;
@@ -36,6 +37,7 @@ public class SwingBrowser extends JDialog implements CyBrowser, ChangeListener {
 	// private final String id;
 	private final Map<String,SwingPanel> idMap;
 	private final Map<String,JButton> buttonMap;
+	private final Map<String,BrowserTab> tabMap;
 	private String initialTitle = null;
 	private JTabbedPane tabbedPane = null;
 
@@ -52,6 +54,7 @@ public class SwingBrowser extends JDialog implements CyBrowser, ChangeListener {
 
 		idMap = new HashMap<>();
 		buttonMap = new HashMap<>();
+		tabMap = new HashMap<>();
 		this.currentPanel = new SwingPanel(manager, id, this, reuse, true, showDebug);
 		
 		tabbedPane = new JTabbedPane();
@@ -84,6 +87,7 @@ public class SwingBrowser extends JDialog implements CyBrowser, ChangeListener {
 
 		idMap = new HashMap<>();
 		buttonMap = new HashMap<>();
+		tabMap = new HashMap<>();
 		currentPanel = new SwingPanel(manager, id, this, null, true, showDebug);
 
 		tabbedPane = new JTabbedPane();
@@ -127,6 +131,17 @@ public class SwingBrowser extends JDialog implements CyBrowser, ChangeListener {
 		return null;
 	}
 
+	public void loadURL(final String url, boolean newTab) {
+		if (!newTab || currentPanel.getURL() == null) {
+			loadURL(url);
+		} else {
+			String newId = currentPanel.getId() + " "+manager.browserCount;
+			manager.browserCount++;
+			addTab(newId, currentPanel.getTitle() + " "+manager.browserCount, false);
+			loadURL(url);
+		}
+	}
+
 	public void loadURL(final String url) {
 		currentPanel.loadURL(url);
 		// Initialize the title.  This will be the title that's used
@@ -136,7 +151,7 @@ public class SwingBrowser extends JDialog implements CyBrowser, ChangeListener {
 			String urlTitle = u.getHost()+u.getPath();
 
 			int tab = tabbedPane.indexOfComponent(currentPanel);
-			tabbedPane.setTabComponentAt(tab, createTabComponent(urlTitle, currentPanel.getId()));
+			tabMap.get(currentPanel.getId()).setTitle(urlTitle);
 		} catch(Exception e) {}
 	}
 
@@ -147,8 +162,7 @@ public class SwingBrowser extends JDialog implements CyBrowser, ChangeListener {
 	public void setTitle(String id, String title) {
 		if (idMap.containsKey(id)) {
 			SwingPanel panel = idMap.get(id);
-			int tab = tabbedPane.indexOfComponent(panel);
-			tabbedPane.setTabComponentAt(tab, createTabComponent(title, id));
+			tabMap.get(id).setTitle(title);
 
 			if (panel.equals(currentPanel))
 				setTitle(title);
@@ -169,7 +183,9 @@ public class SwingBrowser extends JDialog implements CyBrowser, ChangeListener {
 
 		// Get the tab
 		int tab = tabbedPane.indexOfComponent(panel);
-		tabbedPane.setTabComponentAt(tab, createTabComponent(title, id));
+		BrowserTab newTab = new BrowserTab(title, id);
+		tabMap.put(id, newTab);
+		tabbedPane.setTabComponentAt(tab, newTab);
 		tabbedPane.setSelectedComponent(panel);
 
 		if (idMap.size() > 1) {
@@ -180,46 +196,10 @@ public class SwingBrowser extends JDialog implements CyBrowser, ChangeListener {
 
 	}
 
-	private JPanel createTabComponent(String title, String id) {
-		JPanel pnlTab = new JPanel(new GridBagLayout());
-		pnlTab.setOpaque(false);
-		if (title == null || title.length() == 0)
-			title = "Empty Tab";
-		int len = Math.min(title.length(), 20);
-		JLabel lblTitle = new JLabel(title.substring(0, len));
-		lblTitle.setFont(lblTitle.getFont().deriveFont(12.0f));
-		JButton btnClose = new JButton(IconManager.ICON_CLOSE); 
-		buttonMap.put(id, btnClose);
-
-		// Always start out false
-		if (idMap.size() > 1)
-			btnClose.setEnabled(true);
-		else
-			btnClose.setEnabled(false);
-
-		btnClose.setFont(manager.getRegistrar().getService(IconManager.class).getIconFont(12.0f));
-		btnClose.setBorderPainted(false);
-		btnClose.setContentAreaFilled(false);
-		btnClose.setFocusPainted(false);
-		btnClose.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
-
-		btnClose.addActionListener(new CloseActionHandler(id));
-		GridBagConstraints gbc = new GridBagConstraints();
-		gbc.gridx = 0;
-		gbc.gridy = 0;
-		gbc.weightx = 1;
-
-		pnlTab.add(lblTitle, gbc);
-
-		gbc.gridx++;
-		gbc.weightx = 0;
-		pnlTab.add(btnClose, gbc);
-		return pnlTab;
-	}
-
 	@Override
 	public void stateChanged(ChangeEvent e) {
 		currentPanel = (SwingPanel)tabbedPane.getSelectedComponent();
+		if (currentPanel == null) return;
 		String ttl = currentPanel.getTitle();
 		if (ttl != null)
 			setTitle(ttl);
@@ -245,6 +225,61 @@ public class SwingBrowser extends JDialog implements CyBrowser, ChangeListener {
 				if (idMap.size() == 1)
 					buttonMap.get(currentPanel.getId()).setEnabled(false);
 			}
+		}
+	}
+
+	public class BrowserTab extends JPanel {
+		JLabel lblTitle;
+		String id;
+
+		public BrowserTab (String title, String id) {
+			super(new GridBagLayout());
+
+			setOpaque(false);
+			if (title == null || title.length() == 0)
+				title = "Empty Tab";
+			int len = Math.min(title.length(), 20);
+			lblTitle = new JLabel(title.substring(0, len));
+			lblTitle.setFont(lblTitle.getFont().deriveFont(10.0f));
+			// JButton btnClose = new JButton(IconManager.ICON_CLOSE); 
+			JButton btnClose = new JButton(UIManager.getIcon("InternalFrame.closeIcon")); 
+			buttonMap.put(id, btnClose);
+	
+			// Always start out false
+			if (idMap.size() > 1)
+				btnClose.setEnabled(true);
+			else
+				btnClose.setEnabled(false);
+	
+			// btnClose.setFont(manager.getRegistrar().getService(IconManager.class).getIconFont(12.0f));
+			btnClose.setBorderPainted(false);
+			btnClose.setContentAreaFilled(false);
+			btnClose.setFocusPainted(false);
+			btnClose.setBorder(BorderFactory.createEmptyBorder(1,0,1,1));
+			// btnClose.setText(IconManager.ICON_CLOSE);
+	
+			btnClose.addActionListener(new CloseActionHandler(id));
+			GridBagConstraints gbc = new GridBagConstraints();
+			gbc.gridx = 0;
+			gbc.gridy = 0;
+			gbc.weightx = 0;
+	
+			add(btnClose, gbc);
+	
+			gbc.gridx++;
+			gbc.weightx = 1;
+			add(lblTitle, gbc);
+		}
+
+		public void setTitle(String title) {
+			lblTitle.setText(title);
+		}
+
+		public void setId(String id) {
+			JButton btnClose = buttonMap.get(this.id);
+			this.id = id;
+			buttonMap.put(this.id, btnClose);
+			btnClose.addActionListener(new CloseActionHandler(id));
 		}
 	}
 }
