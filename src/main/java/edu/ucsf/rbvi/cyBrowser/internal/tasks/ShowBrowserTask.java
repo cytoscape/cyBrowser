@@ -58,6 +58,12 @@ public class ShowBrowserTask extends AbstractEmptyObservableTask {
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
 				CyBrowser br = manager.getBrowser(id);
+				if (id == null) {
+					if (title != null) 
+						id = title;
+					else
+						id = manager.makeId();
+				}
 				ResultsPanelBrowser browser;
 				if (br != null && br instanceof ResultsPanelBrowser)
 					browser = (ResultsPanelBrowser) br;
