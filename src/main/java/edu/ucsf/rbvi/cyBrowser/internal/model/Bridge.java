@@ -24,6 +24,8 @@ import org.cytoscape.work.json.JSONResult;
 import org.cytoscape.application.CyUserLog;
 import org.apache.log4j.Logger;
 
+import edu.ucsf.rbvi.cyBrowser.internal.view.SwingBrowser;
+
 public class Bridge implements TaskObserver {
 	private String callbackMethod = null;
 	private final WebEngine engine;
@@ -31,12 +33,14 @@ public class Bridge implements TaskObserver {
 	private final StringToModel stringToModel;
 	private final SynchronousTaskManager taskManager;
 	private final CyServiceRegistrar registrar;
+	private final SwingBrowser parent;
 	private List<JSListener> listeners;
 
 	final Logger logger = Logger.getLogger(CyUserLog.NAME);
 	
-	public Bridge(final WebEngine engine, final CyServiceRegistrar registrar) {
+	public Bridge(final WebEngine engine, final CyServiceRegistrar registrar, final SwingBrowser parent) {
 		this.engine = engine;
+		this.parent = parent;
 
 		// Get the services we'll need
 		commandTaskFactory = registrar.getService(CommandExecutorTaskFactory.class);
@@ -99,6 +103,10 @@ public class Bridge implements TaskObserver {
 		System.out.println("Bridge: executing '"+command+"' with results");
 		executeCommand(command);
 		callbackMethod = callback;
+	}
+
+	public void downloadFile(String href, String fileName) {
+			Downloader.download(registrar, parent, href, fileName, true);
 	}
 
 	/**

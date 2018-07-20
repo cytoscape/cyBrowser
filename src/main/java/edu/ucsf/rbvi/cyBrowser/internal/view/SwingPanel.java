@@ -38,9 +38,7 @@ import javafx.scene.web.WebView;
 import javafx.stage.Stage;
 import javafx.util.Callback;
  
-import java.awt.BorderLayout;
-import java.io.File;
-import java.io.FileOutputStream;
+import java.io.ByteArrayInputStream;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -66,6 +64,7 @@ import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
+import javax.xml.bind.DatatypeConverter;
 
 import netscape.javascript.JSObject;
 
@@ -78,7 +77,6 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 
 import org.cytoscape.service.util.CyServiceRegistrar;
-import org.cytoscape.util.swing.FileUtil;
 import org.cytoscape.util.swing.IconManager;
 
 import org.cytoscape.application.CyUserLog;
@@ -87,6 +85,7 @@ import org.apache.log4j.Logger;
 import edu.ucsf.rbvi.cyBrowser.internal.model.Bridge;
 import edu.ucsf.rbvi.cyBrowser.internal.model.CyBrowser;
 import edu.ucsf.rbvi.cyBrowser.internal.model.CyBrowserManager;
+import edu.ucsf.rbvi.cyBrowser.internal.model.Downloader;
 
 import static javafx.concurrent.Worker.State.FAILED;
 
@@ -398,7 +397,7 @@ public class SwingPanel extends JPanel {
 
 							// Set member for 'window' object
 							// In Javascript access: window.cybrowser...
-							jsBridge = new Bridge(engine, registrar);
+							jsBridge = new Bridge(engine, registrar, parent);
 							jsobj.setMember("cybrowser", jsBridge);
 
 							// Now set up a listener for link click events
@@ -407,7 +406,6 @@ public class SwingPanel extends JPanel {
 								public void handleEvent(Event ev) {
 									String domEventType = ev.getType();
 									if (domEventType.equals(EVENT_TYPE_CLICK)) {
-										// System.out.println("Dom click");
 										if (suppressLink) {
 											if (ev.getCancelable()) {
 												ev.preventDefault();
@@ -415,9 +413,15 @@ public class SwingPanel extends JPanel {
 											}
 											suppressLink = false;
 										} else {
-											String href = ((Element)ev.getTarget()).getAttribute("href");
-											String target = ((Element)ev.getTarget()).getAttribute("target");
-											if (href != null && href.startsWith("cycmd:")) {
+											Element aElement = (Element)ev.getTarget();
+											String href = aElement.getAttribute("href");
+											String download = aElement.getAttribute("download");
+											String target = aElement.getAttribute("target");
+											if (href != null && download != null && download.length() > 1) {
+												downloadAction(href, download, false);
+												ev.preventDefault();
+												ev.stopPropagation();
+											} else if (href != null && href.startsWith("cycmd:")) {
 												String command = href.substring("cycmd:".length());
 												jsBridge.executeCommand(command);
 												ev.preventDefault();
@@ -467,7 +471,7 @@ public class SwingPanel extends JPanel {
 										return;
 
 									// Downloading
-									downloadAction(txtURL.getText());
+									downloadAction(txtURL.getText(), null, false);
 
 									// Reset our title, etc.
 									CyBrowser current = manager.getBrowser(id);
@@ -611,60 +615,12 @@ public class SwingPanel extends JPanel {
 
 	private void downloadAction() {
 		String targ = anchor.toString();
-		downloadAction(targ);
+		downloadAction(targ, null, true);
 	}
 
-	private void downloadAction(String targ) {
-		FileUtil fileUtil = registrar.getService(FileUtil.class);
-
-		try {
-			URL urlTarg = new URL(targ);
-			String fileName = urlTarg.getFile();
-
-			if (fileName.charAt(0) == '/')
-				fileName = fileName.substring(1);
-			// Get a connection
-			CloseableHttpClient client = HttpClients.createDefault();
-			HttpGet request = new HttpGet(targ);
-			CloseableHttpResponse response = client.execute(request);
-
-			if (response.getStatusLine().getStatusCode() == 200) {
-				final String fn = fileName;
-				SwingUtilities.invokeLater( new Runnable() {
-					public void run() {
-						// File chooser to get a file
-						File file = fileUtil.getFile(parent, "Name of downloaded file", FileUtil.SAVE, null, fn, null, new ArrayList<>());
-						if (file == null) return;
-
-						try {
-							Thread t = new Thread(new Runnable() {
-								public void run() {
-									// Download (in a separate thread?)
-									logger.info("Downloading file: "+file.toString()+" from "+targ);
-									try {
-										HttpEntity entity = response.getEntity();
-										if (entity != null) {
-       	 							FileOutputStream outstream = new FileOutputStream(file);
-       	   			  		entity.writeTo(outstream);
-										}
-									} catch (Exception e) {
-										logger.error("IO error downloading file: '"+file.toString()+"' from '"+targ+"': "+e.getMessage());
-										return;
-									}
-									logger.info("Downloaded file: "+file.toString());
-								}
-							});
-							t.start();
-						} catch(Exception e) {
-							logger.error("Unable to open file: '"+file.toString()+"': "+e.getMessage());
-						}
-					}
-				});
-			}
-		} catch (Exception e) {
-			logger.error("Error downloading file from: '"+targ+"': "+e.getMessage());
-		}
-
+	// TODO: move this code to a utility class so it can be used by Bridge
+	private void downloadAction(String targ, String fileName, boolean prompt) {
+		Downloader.download(registrar, parent, targ, fileName, prompt);
 	}
 
 	private void openNewAction(boolean openTab) {
@@ -799,6 +755,7 @@ public class SwingPanel extends JPanel {
 			if (e.getButton() == MouseButton.SECONDARY || 
 			    (e.isControlDown() && e.getButton() == MouseButton.PRIMARY)) {
 
+				// FIXME
 				Object anchorElement = engine.executeScript(
 									"function getAnchor() {\n"+
 									"  var elements = document.querySelectorAll(':hover');\n"+
