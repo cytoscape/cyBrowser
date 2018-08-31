@@ -17,6 +17,7 @@ import java.util.Map;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JDialog;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
@@ -25,12 +26,13 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.UIManager;
 
+import org.cytoscape.application.swing.CySwingApplication;
 import org.cytoscape.service.util.CyServiceRegistrar;
 import org.cytoscape.util.swing.IconManager;
 import edu.ucsf.rbvi.cyBrowser.internal.model.CyBrowser;
 import edu.ucsf.rbvi.cyBrowser.internal.model.CyBrowserManager;
 
-public class SwingBrowser extends JDialog implements CyBrowser, ChangeListener {
+public class SwingBrowser extends JFrame implements CyBrowser, ChangeListener {
 
 	private final CyBrowserManager manager;
 	private SwingPanel currentPanel;
@@ -72,6 +74,8 @@ public class SwingBrowser extends JDialog implements CyBrowser, ChangeListener {
 		setPreferredSize(new Dimension(1024, 600));
 		setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		pack();
+		JFrame desktop = manager.getRegistrar().getService(CySwingApplication.class).getJFrame();
+		setLocationRelativeTo(desktop);
 	}
 
 	public SwingBrowser(CyBrowserManager manager, String id, String title, 
@@ -105,6 +109,8 @@ public class SwingBrowser extends JDialog implements CyBrowser, ChangeListener {
 		setPreferredSize(new Dimension(1024, 600));
 		setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		pack();
+		JFrame desktop = manager.getRegistrar().getService(CySwingApplication.class).getJFrame();
+		setLocationRelativeTo(desktop);
 	}
 
 	public String getTitle(String id) { 
