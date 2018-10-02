@@ -117,7 +117,7 @@ public class CyActivator extends AbstractCyActivator {
 			                  "List all browsers that are currently open, whether as "+
 			                  "a dialog or in the results panel.");
 			props.setProperty(COMMAND_SUPPORTS_JSON, "true");
-			props.setProperty(COMMAND_EXAMPLE_JSON, "[{\"id\":\"my window\",\"title\":\"title\", \"url\":\"cytoscape.org\"]}");
+			props.setProperty(COMMAND_EXAMPLE_JSON, "[{\"id\":\"my window\",\"title\":\"title\", \"url\":\"cytoscape.org\"}]");
 			registerService(bc, listBrowsers, TaskFactory.class, props);
 		}
 
