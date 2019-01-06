@@ -47,22 +47,30 @@ public class ResultsPanelBrowser implements CytoPanelComponent2, CyBrowser {
 
 	public SwingPanel getPanel(String id) { return panel; }
 
-	public void loadURL(final String url, boolean newTab) {
-		/* TODO: handle tab */
-		panel.loadURL(url);
+	public void loadURL(final String url) {
+		loadURL(url, false);
 	}
 
-	public void loadURL(final String url) {
+	public void loadURL(final String url, boolean newTab) {
+		loadURL(url, false, null);
+	}
+
+	public void loadURL(final String url, boolean newTab, String tabID) {
+		/* TODO: handle tab */
 		panel.loadURL(url);
 	}
 
 	public String getURL(String id) { return panel.getURL(); }
 
 	public void loadText(final String text) {
-		panel.loadText(text);
+		loadText(text, false, null);
 	}
 
 	public void loadText(final String text, boolean newTab) {
+		loadText(text, newTab, null);
+	}
+
+	public void loadText(final String text, boolean newTab, String tabID) {
 		/* TODO: handle tab */
 		panel.loadText(text);
 	}

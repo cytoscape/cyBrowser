@@ -60,6 +60,12 @@ public class DialogTask extends AbstractEmptyObservableTask {
 	          context="nogui")
 	public boolean newTab = false;
 
+	@Tunable (description="Tab ID", 
+	          longDescription="If ```newTab``` is ``true``, then use the tab with the specified ID",
+	          exampleStringValue="Tab 1",
+	          context="nogui")
+	public String tabID = null;
+
 	@Tunable (description="Show debug tools", 
 	          longDescription="Whether or not to show the web programmer debugging tools",
 	          exampleStringValue="false",
@@ -104,9 +110,9 @@ public class DialogTask extends AbstractEmptyObservableTask {
 					br = (CyBrowser) browser;
 				}
 				if (url != null && url.length() > 3) {
-					br.loadURL(url, newTab);
+					br.loadURL(url, newTab, tabID);
 				} else if (text != null && text.length() > 0) {
-					br.loadText(text, newTab);
+					br.loadText(text, newTab, tabID);
 				}
 				manager.addBrowser(br, id);
 			}

@@ -138,12 +138,21 @@ public class SwingBrowser extends JFrame implements CyBrowser, ChangeListener {
 	}
 
 	public void loadURL(final String url, boolean newTab) {
+		loadURL(url, newTab, null);
+	}
+
+	public void loadURL(final String url, boolean newTab, String tabID) {
 		if (!newTab || currentPanel.getURL() == null) {
 			loadURL(url);
 		} else {
-			String newId = currentPanel.getId() + " "+manager.browserCount;
-			manager.browserCount++;
-			addTab(newId, currentPanel.getTitle() + " "+manager.browserCount, false);
+			if (tabID == null)
+				tabID = currentPanel.getId() + " "+manager.browserCount;
+			if (!idMap.containsKey(tabID)) {
+				manager.browserCount++;
+				addTab(tabID, currentPanel.getTitle() + " "+manager.browserCount, false);
+			} else {
+				currentPanel = idMap.get(tabID);
+			}
 			loadURL(url);
 		}
 	}
@@ -166,12 +175,21 @@ public class SwingBrowser extends JFrame implements CyBrowser, ChangeListener {
 	}
 
 	public void loadText(final String text, boolean newTab) {
+		loadText(text, newTab, null);
+	}
+
+	public void loadText(final String text, boolean newTab, String tabID) {
 		if (!newTab || currentPanel.getText() == null) {
 			currentPanel.loadText(text);
 		} else {
-			String newId = currentPanel.getId() + " "+manager.browserCount;
-			manager.browserCount++;
-			addTab(newId, currentPanel.getTitle() + " "+manager.browserCount, false);
+			if (tabID == null)
+				tabID = currentPanel.getId() + " "+manager.browserCount;
+			if (!idMap.containsKey(tabID)) {
+				manager.browserCount++;
+				addTab(tabID, currentPanel.getTitle() + " "+manager.browserCount, false);
+			} else {
+				currentPanel = idMap.get(tabID);
+			}
 			currentPanel.loadText(text);
 		}
 	}
