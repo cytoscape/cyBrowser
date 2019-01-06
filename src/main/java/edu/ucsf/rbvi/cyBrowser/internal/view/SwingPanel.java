@@ -150,6 +150,10 @@ public class SwingPanel extends JPanel {
 		return engine.getLocation();
 	}
 
+	public Document getText() {
+		return engine.getDocument();
+	}
+
 	public String getId() {
 		return id;
 	}

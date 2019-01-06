@@ -166,7 +166,7 @@ public class SwingBrowser extends JFrame implements CyBrowser, ChangeListener {
 	}
 
 	public void loadText(final String text, boolean newTab) {
-		if (!newTab) {
+		if (!newTab || currentPanel.getText() == null) {
 			currentPanel.loadText(text);
 		} else {
 			String newId = currentPanel.getId() + " "+manager.browserCount;
