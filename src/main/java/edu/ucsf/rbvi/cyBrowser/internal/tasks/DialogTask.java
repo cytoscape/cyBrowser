@@ -106,7 +106,7 @@ public class DialogTask extends AbstractEmptyObservableTask {
 				if (url != null && url.length() > 3) {
 					br.loadURL(url, newTab);
 				} else if (text != null && text.length() > 0) {
-					br.loadText(text);
+					br.loadText(text, newTab);
 				}
 				manager.addBrowser(br, id);
 			}

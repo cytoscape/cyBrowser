@@ -165,6 +165,17 @@ public class SwingBrowser extends JFrame implements CyBrowser, ChangeListener {
 		currentPanel.loadText(text);
 	}
 
+	public void loadText(final String text, boolean newTab) {
+		if (!newTab) {
+			currentPanel.loadText(text);
+		} else {
+			String newId = currentPanel.getId() + " "+manager.browserCount;
+			manager.browserCount++;
+			addTab(newId, currentPanel.getTitle() + " "+manager.browserCount, false);
+			currentPanel.loadText(text);
+		}
+	}
+
 	public void setTitle(String id, String title) {
 		if (idMap.containsKey(id)) {
 			SwingPanel panel = idMap.get(id);
@@ -247,8 +258,9 @@ public class SwingBrowser extends JFrame implements CyBrowser, ChangeListener {
 			int len = Math.min(title.length(), 20);
 			lblTitle = new JLabel(title.substring(0, len));
 			lblTitle.setFont(lblTitle.getFont().deriveFont(10.0f));
-			// JButton btnClose = new JButton(IconManager.ICON_CLOSE); 
-			JButton btnClose = new JButton(UIManager.getIcon("InternalFrame.closeIcon")); 
+			JButton btnClose = new JButton(IconManager.ICON_CLOSE); 
+			btnClose.setFont(manager.getRegistrar().getService(IconManager.class).getIconFont(8.0f));
+			// JButton btnClose = new JButton(UIManager.getIcon("InternalFrame.closeIcon")); 
 			buttonMap.put(id, btnClose);
 	
 			// Always start out false

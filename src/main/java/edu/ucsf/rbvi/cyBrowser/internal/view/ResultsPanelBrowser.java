@@ -62,6 +62,11 @@ public class ResultsPanelBrowser implements CytoPanelComponent2, CyBrowser {
 		panel.loadText(text);
 	}
 
+	public void loadText(final String text, boolean newTab) {
+		/* TODO: handle tab */
+		panel.loadText(text);
+	}
+
 	@Override
 	public String getIdentifier() {
 		return this.getClass().getName();
