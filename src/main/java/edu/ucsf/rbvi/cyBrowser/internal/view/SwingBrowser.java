@@ -144,6 +144,8 @@ public class SwingBrowser extends JFrame implements CyBrowser, ChangeListener {
 	public void loadURL(final String url, boolean newTab, String tabID) {
 		if (!newTab || currentPanel.getURL() == null) {
 			loadURL(url);
+			if (tabID != null)
+				idMap.put(tabID, currentPanel);
 		} else {
 			if (tabID == null)
 				tabID = currentPanel.getId() + " "+manager.browserCount;
@@ -152,6 +154,7 @@ public class SwingBrowser extends JFrame implements CyBrowser, ChangeListener {
 				addTab(tabID, currentPanel.getTitle() + " "+manager.browserCount, false);
 			} else {
 				currentPanel = idMap.get(tabID);
+				tabbedPane.setSelectedComponent(currentPanel);
 			}
 			loadURL(url);
 		}
@@ -181,14 +184,19 @@ public class SwingBrowser extends JFrame implements CyBrowser, ChangeListener {
 	public void loadText(final String text, boolean newTab, String tabID) {
 		if (!newTab || currentPanel.getText() == null) {
 			currentPanel.loadText(text);
+			if (tabID != null)
+				idMap.put(tabID, currentPanel);
 		} else {
 			if (tabID == null)
 				tabID = currentPanel.getId() + " "+manager.browserCount;
+
+			System.out.println("tabID = "+tabID);
 			if (!idMap.containsKey(tabID)) {
 				manager.browserCount++;
 				addTab(tabID, currentPanel.getTitle() + " "+manager.browserCount, false);
 			} else {
 				currentPanel = idMap.get(tabID);
+				tabbedPane.setSelectedComponent(currentPanel);
 			}
 			currentPanel.loadText(text);
 		}
