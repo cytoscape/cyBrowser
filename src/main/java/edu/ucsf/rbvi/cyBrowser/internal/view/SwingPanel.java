@@ -438,8 +438,13 @@ public class SwingPanel extends JPanel {
 												ev.stopPropagation();
 											} else {
 												CyBrowser current = manager.getBrowser(id);
-												lastTitle = current.getTitle(id);
-												lastText = txtURL.getText();
+												if (current != null) {
+													lastTitle = current.getTitle(id);
+												}
+
+												if (txtURL != null) {
+													lastText = txtURL.getText();
+												}
 											}
 										}
 									}
