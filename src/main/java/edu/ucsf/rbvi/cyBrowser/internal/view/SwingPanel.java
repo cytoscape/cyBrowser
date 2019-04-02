@@ -151,6 +151,7 @@ public class SwingPanel extends JPanel {
 	}
 
 	public Document getText() {
+		if (engine == null || engine.getDocument() == null) return null;
 		return engine.getDocument();
 	}
 
