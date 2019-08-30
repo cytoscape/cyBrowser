@@ -11,7 +11,8 @@ import java.util.ArrayList;
 import javax.imageio.ImageIO;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
-import javax.xml.bind.DatatypeConverter;
+//import javax.xml.bind.DatatypeConverter;
+import java.util.Base64;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -131,7 +132,7 @@ public class Downloader {
 			logger.info("Saving file: "+file.toString());
 
 			try {
-				byte[] imagedata = DatatypeConverter.parseBase64Binary(targ.substring(targ.indexOf(",") + 1));
+				byte[] imagedata = Base64.getDecoder().decode(targ.substring(targ.indexOf(",") + 1));
 				try (OutputStream stream = new FileOutputStream(file)) {
 					stream.write(imagedata);
 				}

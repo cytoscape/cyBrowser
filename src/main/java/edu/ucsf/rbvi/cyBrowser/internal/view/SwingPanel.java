@@ -64,7 +64,6 @@ import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
-import javax.xml.bind.DatatypeConverter;
 
 import netscape.javascript.JSObject;
 
