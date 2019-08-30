@@ -508,6 +508,23 @@ public class SwingPanel extends JPanel {
 			}
 		}
 
+		{
+			NodeList nodeList = doc.getElementsByTagName("frame");
+			for (int i = 0; i < nodeList.getLength(); i++) {
+				HTMLFrameElement element = (HTMLFrameElement)nodeList.item(i);
+				addListenersToAnchors(element.getContentDocument(), listener);
+			}
+		}
+		
+		{
+			NodeList nodeList = doc.getElementsByTagName("iframe");
+			for (int i = 0; i < nodeList.getLength(); i++) {
+				HTMLIFrameElement element = (HTMLIFrameElement)nodeList.item(i);
+				addListenersToAnchors(element.getContentDocument(), listener);
+			}
+		}
+
+		/*
 		// Ugh.  Now we need to look for frames
 		{
 			NodeList nodeList = doc.getElementsByTagName("frame");
@@ -545,6 +562,7 @@ public class SwingPanel extends JPanel {
 				}
 			}
 		}
+		*/
 	}
  
 	public void loadText(final String text) {
