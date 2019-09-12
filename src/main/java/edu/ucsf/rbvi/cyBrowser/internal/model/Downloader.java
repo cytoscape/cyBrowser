@@ -6,13 +6,13 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Base64;
 
 import javax.imageio.ImageIO;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
-//import javax.xml.bind.DatatypeConverter;
-import java.util.Base64;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -88,6 +88,7 @@ public class Downloader {
 					file = fileUtil.getFile(parent, "Name of downloaded file", FileUtil.SAVE, null, 
 					                        fileName, null, new ArrayList<>());
 					if (file == null) return;
+					System.out.println("file = "+file.toString());
 				} else {
 					// TODO: prompt user if it's OK to download?
 					int download = 
@@ -131,13 +132,16 @@ public class Downloader {
 		public void run() {
 			logger.info("Saving file: "+file.toString());
 
+			String base64String= targ.substring(targ.indexOf(",")+1);
+			System.out.println(base64String);
 			try {
-				byte[] imagedata = Base64.getDecoder().decode(targ.substring(targ.indexOf(",") + 1));
+				byte[] imagedata = Base64.getMimeDecoder().decode(base64String.getBytes(StandardCharsets.UTF_8));
 				try (OutputStream stream = new FileOutputStream(file)) {
 					stream.write(imagedata);
 				}
 			} catch (Exception e) {
 				logger.error("Failed to write image to file: "+file.toString());
+				e.printStackTrace();
 			}
 		}
 
