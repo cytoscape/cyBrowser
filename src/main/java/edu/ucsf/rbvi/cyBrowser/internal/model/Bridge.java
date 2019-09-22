@@ -94,13 +94,13 @@ public class Bridge implements TaskObserver {
 	}
 
 	public void executeCyCommand(String command) {
-		System.out.println("Bridge: executing '"+command+"'");
+		logger.info("Bridge: executing command: '"+command+"'");
 		executeCommand(command);
 		callbackMethod = null;
 	}
 
 	public void executeCyCommandWithResults(String command, String callback) {
-		System.out.println("Bridge: executing '"+command+"' with results");
+		logger.info("Bridge: executing command: '"+command+"' with results");
 		executeCommand(command);
 		callbackMethod = callback;
 	}

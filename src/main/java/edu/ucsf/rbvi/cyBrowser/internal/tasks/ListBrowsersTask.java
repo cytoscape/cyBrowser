@@ -59,15 +59,17 @@ public class ListBrowsersTask extends AbstractTask implements ObservableTask {
 				if (map == null) 
 					return "{}"; 
 
+				if (map.keySet().size() == 0) return "[]";
+
 				String jsonRes = "[";
 				for (String id: map.keySet()) {
 					CyBrowser b = map.get(id);
-					jsonRes += "{\"id\": "+id;
+					jsonRes += "{\"id\": \""+id+"\"";
 					if (b.getTitle(id) != null) jsonRes += ", \"title\":\""+b.getTitle(id)+"\"";
 					if (b.getURL(id) != null) jsonRes += ", \"url\":\""+b.getURL(id)+"\"";
-					jsonRes += "}\n";
+					jsonRes += "},";
 				}
-				jsonRes += "]";
+				jsonRes = jsonRes.substring(0, jsonRes.length()-1)+"]";
 				return jsonRes;
 			};
 			return (R)res;
