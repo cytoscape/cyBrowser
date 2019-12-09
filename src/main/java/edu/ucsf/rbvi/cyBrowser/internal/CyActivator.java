@@ -1,29 +1,36 @@
 package edu.ucsf.rbvi.cyBrowser.internal;
 
-import java.util.Properties;
-
 import static org.cytoscape.work.ServiceProperties.COMMAND;
 import static org.cytoscape.work.ServiceProperties.COMMAND_DESCRIPTION;
+import static org.cytoscape.work.ServiceProperties.COMMAND_EXAMPLE_JSON;
 import static org.cytoscape.work.ServiceProperties.COMMAND_LONG_DESCRIPTION;
 import static org.cytoscape.work.ServiceProperties.COMMAND_NAMESPACE;
-import static org.cytoscape.work.ServiceProperties.COMMAND_EXAMPLE_JSON;
 import static org.cytoscape.work.ServiceProperties.COMMAND_SUPPORTS_JSON;
-import static org.cytoscape.work.ServiceProperties.ENABLE_FOR;
-import static org.cytoscape.work.ServiceProperties.INSERT_SEPARATOR_BEFORE;
 import static org.cytoscape.work.ServiceProperties.IN_MENU_BAR;
+import static org.cytoscape.work.ServiceProperties.IN_TOOL_BAR;
+import static org.cytoscape.work.ServiceProperties.LARGE_ICON_ID;
 import static org.cytoscape.work.ServiceProperties.MENU_GRAVITY;
 import static org.cytoscape.work.ServiceProperties.PREFERRED_MENU;
 import static org.cytoscape.work.ServiceProperties.TITLE;
+import static org.cytoscape.work.ServiceProperties.TOOLTIP;
+import static org.cytoscape.work.ServiceProperties.TOOLTIP_LONG_DESCRIPTION;
+import static org.cytoscape.work.ServiceProperties.TOOL_BAR_GRAVITY;
+
+import java.awt.Font;
+import java.util.Properties;
+
+import javax.swing.Icon;
 
 import org.cytoscape.application.swing.CySwingApplication;
-
 import org.cytoscape.service.util.AbstractCyActivator;
 import org.cytoscape.service.util.CyServiceRegistrar;
+import org.cytoscape.util.swing.IconManager;
+import org.cytoscape.util.swing.TextIcon;
 import org.cytoscape.work.TaskFactory;
-
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 
+import edu.ucsf.rbvi.cyBrowser.internal.model.CyBrowserManager;
 import edu.ucsf.rbvi.cyBrowser.internal.tasks.CloseBrowserTaskFactory;
 import edu.ucsf.rbvi.cyBrowser.internal.tasks.DialogTaskFactory;
 import edu.ucsf.rbvi.cyBrowser.internal.tasks.HideBrowserTaskFactory;
@@ -31,16 +38,15 @@ import edu.ucsf.rbvi.cyBrowser.internal.tasks.ListBrowsersTaskFactory;
 import edu.ucsf.rbvi.cyBrowser.internal.tasks.SendTaskFactory;
 import edu.ucsf.rbvi.cyBrowser.internal.tasks.ShowBrowserTaskFactory;
 import edu.ucsf.rbvi.cyBrowser.internal.tasks.VersionTaskFactory;
-
-import edu.ucsf.rbvi.cyBrowser.internal.model.CyBrowserManager;
+import edu.ucsf.rbvi.cyBrowser.internal.util.IconUtil;
 
 public class CyActivator extends AbstractCyActivator {
-	public CyActivator() {
-		super();
-	}
+	
+	private static float LARGE_ICON_FONT_SIZE = 28f;
+	private static int LARGE_ICON_SIZE = 32;
 
+	@Override
 	public void start(BundleContext bc) {
-
 		// See if we have a graphics console or not
 		boolean haveGUI = true;
 		ServiceReference ref = bc.getServiceReference(CySwingApplication.class.getName());
@@ -58,13 +64,32 @@ public class CyActivator extends AbstractCyActivator {
 		String version = bc.getBundle().getVersion().toString();
 		manager.setVersion(version);
 
+		IconManager iconManager = getService(bc, IconManager.class);
+		Font iconFont = IconUtil.getIconFont(LARGE_ICON_FONT_SIZE);
+		
 		{
 			DialogTaskFactory startBrowser = new DialogTaskFactory(manager);
+			
+			Icon icon = new TextIcon(
+					IconUtil.BROWSER_ICON,
+					iconFont,
+					IconUtil.BROWSER_ICON_COLORS,
+					LARGE_ICON_SIZE,
+					LARGE_ICON_SIZE
+			);
+			String iconId = "rbvi::OPEN_CYBROWSER";
+			iconManager.addIcon(iconId, icon);
+			
 			Properties props = new Properties();
 			props.setProperty(PREFERRED_MENU, "Tools");
-			props.setProperty(TITLE, "Cytoscape web browser");
+			props.setProperty(TITLE, "Cytoscape Web Browser");
 			props.setProperty(MENU_GRAVITY, "1.0");
 			props.setProperty(IN_MENU_BAR, "true");
+			props.setProperty(IN_TOOL_BAR, "true");
+			props.setProperty(TOOL_BAR_GRAVITY, "120000000000000.0");
+			props.setProperty(LARGE_ICON_ID, iconId);
+			props.setProperty(TOOLTIP, "Cytoscape Web Browser");
+			props.setProperty(TOOLTIP_LONG_DESCRIPTION, "Open Cytoscape Web Browser.");
 			props.setProperty(COMMAND_NAMESPACE, "cybrowser");
 			props.setProperty(COMMAND, "dialog");
 			props.setProperty(COMMAND_DESCRIPTION, "Launch an HTML browser in a separate window");
