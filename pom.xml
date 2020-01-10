@@ -5,10 +5,11 @@
 	<properties>
 		<bundle.symbolicName>cyBrowser</bundle.symbolicName>
 		<bundle.namespace>edu.ucsf.rbvi.cyBrowser.internal</bundle.namespace>
-		<cytoscape.api.version>3.7.0</cytoscape.api.version>
-
-		<maven-bundle-plugin.version>2.5.4</maven-bundle-plugin.version>
-		<osgi.api.version>4.2.0</osgi.api.version>
+		<cytoscape.api.version>3.8.0-SNAPSHOT</cytoscape.api.version>
+		<maven-compiler-plugin.version>3.8.0</maven-compiler-plugin.version>
+		<maven-surefire-plugin.version>3.0.0-M3</maven-surefire-plugin.version>
+		<maven-bundle-plugin.version>4.1.0</maven-bundle-plugin.version>
+		<osgi.api.version>6.0.0</osgi.api.version>
 	</properties>
 
 	<groupId>edu.ucsf.rbvi</groupId>
@@ -16,7 +17,7 @@
 	<packaging>bundle</packaging>
 	<name>${bundle.symbolicName}</name>
 
-	<version>1.1.0</version>
+	<version>1.2.0</version>
 
 	<build>
 		<plugins>
@@ -41,12 +42,17 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.3</version>
+				<version>${maven-compiler-plugin.version}</version>
 				<configuration>
-					<source>1.8</source>
-					<target>1.8</target>
+					<source>11</source>
+					<target>11</target>
 				</configuration>
 			</plugin>
+			<plugin>
+          		<groupId>org.apache.maven.plugins</groupId>
+          		<artifactId>maven-surefire-plugin</artifactId>
+          		<version>${maven-surefire-plugin.version}</version>
+        	</plugin>
 		</plugins>
 	</build>
 
