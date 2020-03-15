@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.net.URL;
+import java.net.MalformedURLException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -36,10 +37,13 @@ public class Downloader {
 	public static void download(CyServiceRegistrar registrar, SwingBrowser parent, 
 	                            String targ, String fileName, boolean prompt) {
 		FileUtil fileUtil = registrar.getService(FileUtil.class);
+		Thread.dumpStack();
+
 		if (fileName == null && !targ.startsWith("data:")) {
 			try {
 				URL urlTarg = new URL(targ);
-				fileName = urlTarg.getFile();
+				fileName = urlTarg.getPath();
+				fileName = (new File(fileName)).getName();
 			} catch (Exception e) {
 				logger.error("Malformed URL: '"+targ+"'");
 				return;
@@ -50,7 +54,6 @@ public class Downloader {
 		if (targ.startsWith("data:")) {
 			int offset = targ.indexOf(",");  // get a pointer to where the data starts
 			String[] inst = targ.substring(0, offset).split("[:;]");
-			System.out.println("inst[0] = "+inst[0]+" inst[1] = "+inst[1]+" inst[2] = "+inst[2]);
 			if (inst[2].startsWith("base64") && inst[1].startsWith("image")) {
 				doDownload(fileUtil, parent, targ, fileName, true, new DataDownloader());
 			} else {
@@ -83,12 +86,13 @@ public class Downloader {
 		SwingUtilities.invokeLater( new Runnable() {
 			public void run() {
 				File file;
+
+				// We might have extra URL args -- strip them
 				if (prompt) {
 					// File chooser to get a file
 					file = fileUtil.getFile(parent, "Name of downloaded file", FileUtil.SAVE, null, 
 					                        fileName, null, new ArrayList<>());
 					if (file == null) return;
-					System.out.println("file = "+file.toString());
 				} else {
 					// TODO: prompt user if it's OK to download?
 					int download = 
@@ -133,7 +137,6 @@ public class Downloader {
 			logger.info("Saving file: "+file.toString());
 
 			String base64String= targ.substring(targ.indexOf(",")+1);
-			System.out.println(base64String);
 			try {
 				byte[] imagedata = Base64.getMimeDecoder().decode(base64String.getBytes(StandardCharsets.UTF_8));
 				try (OutputStream stream = new FileOutputStream(file)) {
