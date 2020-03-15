@@ -255,7 +255,7 @@ public class SwingPanel extends JPanel {
 				Platform.runLater(new Runnable() {
 					@Override
 					public void run() {
-						engine.executeScript("if (!document.getElementById('FirebugLite')){E = document['createElement' + 'NS'] && document.documentElement.namespaceURI;E = E ? document['createElement' + 'NS'](E, 'script') : document['createElement']('script');E['setAttribute']('id', 'FirebugLite');E['setAttribute']('src', 'https://getfirebug.com/' + 'firebug-lite.js' + '#startOpened');E['setAttribute']('FirebugLite', '4');(document['getElementsByTagName']('head')[0] || document['getElementsByTagName']('body')[0]).appendChild(E);E = new Image;E['setAttribute']('src', 'https://getfirebug.com/' + '#startOpened');}"); 
+						engine.executeScript("if (!document.getElementById('FirebugLite')){E = document['createElement' + 'NS'] && document.documentElement.namespaceURI;E = E ? document['createElement' + 'NS'](E, 'script') : document['createElement']('script');E['setAttribute']('id', 'FirebugLite');E['setAttribute']('src', 'https://cdnjs.cloudflare.com/ajax/libs/firebug-lite/1.4.0/firebug-lite.min.js' + '#startOpened');E['setAttribute']('FirebugLite', '4');(document['getElementsByTagName']('head')[0] || document['getElementsByTagName']('body')[0]).appendChild(E);E = new Image;E['setAttribute']('src', 'https://cdnjs.cloudflare.com/ajax/libs/firebug-lite/1.4.0/firebug-lite.min.js' + '#startOpened');}"); 
 					}
 				});
 			}
@@ -418,10 +418,32 @@ public class SwingPanel extends JPanel {
 											suppressLink = false;
 										} else {
 											Element aElement = (Element)ev.getTarget();
-											String href = aElement.getAttribute("href");
-											String download = aElement.getAttribute("download");
-											String target = aElement.getAttribute("target");
-											if (href != null && download != null && download.length() > 1) {
+											String href = null;
+											boolean haveDownload = false;
+											String download = null;
+											String target = null;
+
+											if (aElement.getTagName().equals("A")) {
+												href = aElement.toString();
+												haveDownload = aElement.hasAttribute("download");
+												download = aElement.getAttribute("download");
+												target = aElement.getAttribute("target");
+											} else {
+												// OK, how did we get here?
+												// We need to do this in case there's a download link wrapping
+												// an image or something
+												if (aElement.getParentNode().getNodeName().equals("A")) {
+													Element pElement = (Element)aElement.getParentNode();
+													download = pElement.getAttribute("download");
+													haveDownload = pElement.hasAttribute("download");
+													target = pElement.getAttribute("target");
+													href = pElement.toString();
+												}
+											} 
+											if (download.length() < 1) 
+												download = null;
+
+											if (href != null && haveDownload) {
 												downloadAction(href, download, false);
 												ev.preventDefault();
 												ev.stopPropagation();
@@ -473,6 +495,16 @@ public class SwingPanel extends JPanel {
 								URL targ = new URL(txtURL.getText());
 								URLConnection conn =  targ.openConnection();
 								Map<String, List<String>> map = conn.getHeaderFields();
+								String fileName = null;
+
+								List<String> contentDisposition = map.get("Content-Disposition");
+								for (String cd: contentDisposition) {
+									int index = cd.indexOf("filename=");
+									if (index == -1) continue;
+									String fn = cd.substring(index);
+									String[] st = fn.split("\"");
+									fileName = st[1];
+								}
 								List<String> contentTypeList = map.get("Content-Type");
 								if (contentTypeList != null && !contentTypeList.isEmpty()) {
 									String contentType = contentTypeList.get(0);
@@ -480,7 +512,7 @@ public class SwingPanel extends JPanel {
 										return;
 
 									// Downloading
-									downloadAction(txtURL.getText(), null, false);
+									downloadAction(txtURL.getText(), fileName, false);
 
 									// Reset our title, etc.
 									CyBrowser current = manager.getBrowser(id);
