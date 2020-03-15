@@ -37,7 +37,6 @@ public class Downloader {
 	public static void download(CyServiceRegistrar registrar, SwingBrowser parent, 
 	                            String targ, String fileName, boolean prompt) {
 		FileUtil fileUtil = registrar.getService(FileUtil.class);
-		Thread.dumpStack();
 
 		if (fileName == null && !targ.startsWith("data:")) {
 			try {
