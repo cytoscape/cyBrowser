@@ -39,9 +39,9 @@ public class HideBrowserTask extends AbstractEmptyObservableTask {
 		// System.out.println("Hiding window "+id+" browser "+browser);
 		if (browser instanceof ResultsPanelBrowser)
 			manager.unregisterCytoPanel((ResultsPanelBrowser)browser);
-		else if (browser instanceof SwingBrowser)
-			((SwingBrowser)browser).dispose();
-		manager.removeBrowser(id);
+		else if (browser instanceof SwingBrowser) {
+			((SwingBrowser)browser).setVisible(false);
+		}
 	}
 
 	@ProvidesTitle
