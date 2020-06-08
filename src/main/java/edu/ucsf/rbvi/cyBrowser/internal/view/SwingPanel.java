@@ -440,7 +440,8 @@ public class SwingPanel extends JPanel {
 													href = pElement.toString();
 												}
 											} 
-											if (download.length() < 1) 
+
+											if (download == null || download.length() < 1) 
 												download = null;
 
 											if (href != null && haveDownload) {
