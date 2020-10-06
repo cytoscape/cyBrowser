@@ -502,9 +502,14 @@ public class SwingPanel extends JPanel {
 								for (String cd: contentDisposition) {
 									int index = cd.indexOf("filename=");
 									if (index == -1) continue;
-									String fn = cd.substring(index);
-									String[] st = fn.split("\"");
-									fileName = st[1];
+									String fn = cd.substring(index+9);
+                  // is the filename quoted?
+                  if (fn.indexOf("\"") == -1) {
+                    fileName = fn;
+                  } else {
+									  String[] st = fn.split("\"");
+									  fileName = st[1];
+                  }
 								}
 								List<String> contentTypeList = map.get("Content-Type");
 								if (contentTypeList != null && !contentTypeList.isEmpty()) {
@@ -513,7 +518,7 @@ public class SwingPanel extends JPanel {
 										return;
 
 									// Downloading
-									downloadAction(txtURL.getText(), fileName, false);
+									downloadAction(txtURL.getText(), fileName, true);
 
 									// Reset our title, etc.
 									CyBrowser current = manager.getBrowser(id);
@@ -522,6 +527,7 @@ public class SwingPanel extends JPanel {
 									txtURL.setText(lastText);
 								}
 							} catch (Exception e) {
+                e.printStackTrace();
 								logger.error("Failed to download '"+txtURL.getText()+"': "+e.getMessage());
 							}
 						}
