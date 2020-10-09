@@ -494,23 +494,27 @@ public class SwingPanel extends JPanel {
 						} else if (newState == Worker.State.CANCELLED) {
 							try{
 								URL targ = new URL(txtURL.getText());
+
 								URLConnection conn =  targ.openConnection();
 								Map<String, List<String>> map = conn.getHeaderFields();
 								String fileName = null;
 
 								List<String> contentDisposition = map.get("Content-Disposition");
-								for (String cd: contentDisposition) {
-									int index = cd.indexOf("filename=");
-									if (index == -1) continue;
-									String fn = cd.substring(index+9);
-                  // is the filename quoted?
-                  if (fn.indexOf("\"") == -1) {
-                    fileName = fn;
-                  } else {
-									  String[] st = fn.split("\"");
-									  fileName = st[1];
-                  }
-								}
+                if (contentDisposition != null && !contentDisposition.isEmpty()) {
+				  				for (String cd: contentDisposition) {
+				  					int index = cd.indexOf("filename=");
+				  					if (index == -1) continue;
+				  					String fn = cd.substring(index+9);
+                   // is the filename quoted?
+                   if (fn.indexOf("\"") == -1) {
+                     fileName = fn;
+                   } else {
+				  					  String[] st = fn.split("\"");
+				  					  fileName = st[1];
+                   }
+				  				}
+                }
+
 								List<String> contentTypeList = map.get("Content-Type");
 								if (contentTypeList != null && !contentTypeList.isEmpty()) {
 									String contentType = contentTypeList.get(0);
