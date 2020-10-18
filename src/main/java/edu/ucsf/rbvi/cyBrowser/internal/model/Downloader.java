@@ -4,6 +4,8 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URL;
 import java.net.MalformedURLException;
@@ -12,7 +14,9 @@ import java.util.ArrayList;
 import java.util.Base64;
 
 import javax.imageio.ImageIO;
+import javax.swing.JDialog;
 import javax.swing.JOptionPane;
+import javax.swing.JProgressBar;
 import javax.swing.SwingUtilities;
 
 import org.apache.http.HttpEntity;
@@ -107,6 +111,7 @@ public class Downloader {
 				if (processor instanceof HttpDownloader) {
 					((HttpDownloader)processor).setFile(file);
 					((HttpDownloader)processor).setURL(targ);
+					((HttpDownloader)processor).startProgress();
 				} else if (processor instanceof DataDownloader) {
 					((DataDownloader)processor).setFile(file);
 					((DataDownloader)processor).setURL(targ);
@@ -153,6 +158,9 @@ public class Downloader {
 		File file;
 		String targ;
 		final CloseableHttpResponse response;
+    static int BufferSize = 4096;
+    JProgressBar jprogressBar;
+    JDialog progressDialog;
 
 		public HttpDownloader(CloseableHttpResponse response) {
 			this.response = response;
@@ -161,17 +169,42 @@ public class Downloader {
 		public void setFile(File file) {this.file = file; }
 		public void setURL(String targ) {this.targ = targ; }
 
+    public void startProgress() {
+      JOptionPane pane = new JOptionPane();
+      pane.setMessage("Downloading "+file.getName()+" ...");
+      jprogressBar = new JProgressBar(1, 100);
+      jprogressBar.setValue(0);
+      pane.add(jprogressBar, 1);
+      progressDialog = pane.createDialog("Downloading "+file.getName());
+      progressDialog.setModal(false);
+      progressDialog.setVisible(true);
+    }
+
 		public void run() {
 			// Download (in a separate thread?)
 			logger.info("Downloading file: "+file.toString()+" from "+targ);
 			try {
 				HttpEntity entity = response.getEntity();
 				if (entity != null) {
+          double length = (double)entity.getContentLength();
+          InputStream in = entity.getContent();
 					FileOutputStream outstream = new FileOutputStream(file);
-					entity.writeTo(outstream);
+          double read = 0;
+          byte[] buffer = new byte[BufferSize];
+          long bytesRead = 1;
+          while(bytesRead > 0) {
+            bytesRead = in.read(buffer, 0, BufferSize);
+            outstream.write(buffer);
+            read += (double)bytesRead;
+            jprogressBar.setValue((int)((read*100)/length));
+          }
 				}
+        progressDialog.setVisible(false);
+        progressDialog.dispose();
 			} catch (Exception e) {
 				logger.error("IO error downloading file: '"+file.toString()+"' from '"+targ+"': "+e.getMessage());
+        progressDialog.setVisible(false);
+        progressDialog.dispose();
 				return;
 			}
 			logger.info("Downloaded file: "+file.toString());
