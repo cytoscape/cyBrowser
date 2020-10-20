@@ -191,17 +191,20 @@ public class Downloader {
 					FileOutputStream outstream = new FileOutputStream(file);
           double read = 0;
           byte[] buffer = new byte[BufferSize];
-          long bytesRead = 1;
-          while(bytesRead > 0) {
+          int bytesRead;
+          do {
             bytesRead = in.read(buffer, 0, BufferSize);
-            outstream.write(buffer);
-            read += (double)bytesRead;
-            jprogressBar.setValue((int)((read*100)/length));
-          }
+            if (bytesRead > 0) {
+              outstream.write(buffer, 0, bytesRead);
+              read += (double)bytesRead;
+              jprogressBar.setValue((int)((read*100)/length));
+            }
+          } while (bytesRead > 0);
 				}
         progressDialog.setVisible(false);
         progressDialog.dispose();
 			} catch (Exception e) {
+        e.printStackTrace();
 				logger.error("IO error downloading file: '"+file.toString()+"' from '"+targ+"': "+e.getMessage());
         progressDialog.setVisible(false);
         progressDialog.dispose();
