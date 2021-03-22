@@ -51,6 +51,10 @@ public class CyActivator extends AbstractCyActivator {
 		boolean haveGUI = true;
 		ServiceReference ref = bc.getServiceReference(CySwingApplication.class.getName());
 
+    // We need to be able to support CORS web pages
+    System.setProperty("sun.net.http.allowRestrictedHeaders", "true");
+
+
 		if (ref == null) {
 			haveGUI = false;
 			// Issue error and return
@@ -67,8 +71,8 @@ public class CyActivator extends AbstractCyActivator {
 		IconManager iconManager = getService(bc, IconManager.class);
 		Font iconFont = IconUtil.getIconFont(LARGE_ICON_FONT_SIZE);
 		
-		{
-			DialogTaskFactory startBrowser = new DialogTaskFactory(manager);
+    {
+			DialogTaskFactory startBrowser = new DialogTaskFactory(manager, "http://tutorials.cytoscape.org/");
 			
 			Icon icon = new TextIcon(
 					IconUtil.BROWSER_ICON,
@@ -81,15 +85,26 @@ public class CyActivator extends AbstractCyActivator {
 			iconManager.addIcon(iconId, icon);
 			
 			Properties props = new Properties();
-			props.setProperty(PREFERRED_MENU, "Tools");
-			props.setProperty(TITLE, "Cytoscape Web Browser");
-			props.setProperty(MENU_GRAVITY, "1.0");
-			props.setProperty(IN_MENU_BAR, "true");
+			props.setProperty(IN_MENU_BAR, "false");
 			props.setProperty(IN_TOOL_BAR, "true");
 			props.setProperty(TOOL_BAR_GRAVITY, "120000000000000.0");
 			props.setProperty(LARGE_ICON_ID, iconId);
 			props.setProperty(TOOLTIP, "Cytoscape Web Browser");
 			props.setProperty(TOOLTIP_LONG_DESCRIPTION, "Open Cytoscape Web Browser.");
+			registerService(bc, startBrowser, TaskFactory.class, props);
+		}
+
+		{
+			DialogTaskFactory startBrowser = new DialogTaskFactory(manager);
+			
+			Properties props = new Properties();
+			props.setProperty(PREFERRED_MENU, "Tools");
+			props.setProperty(TITLE, "Open web page");
+			props.setProperty(MENU_GRAVITY, "1.0");
+			props.setProperty(IN_MENU_BAR, "true");
+			props.setProperty(IN_TOOL_BAR, "false");
+			props.setProperty(TOOLTIP, "Open Web Page");
+			props.setProperty(TOOLTIP_LONG_DESCRIPTION, "Open Web Page in Cytoscape Web Browser.");
 			props.setProperty(COMMAND_NAMESPACE, "cybrowser");
 			props.setProperty(COMMAND, "dialog");
 			props.setProperty(COMMAND_DESCRIPTION, "Launch an HTML browser in a separate window");

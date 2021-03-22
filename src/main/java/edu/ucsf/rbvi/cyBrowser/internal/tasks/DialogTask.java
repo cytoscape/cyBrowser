@@ -66,10 +66,10 @@ public class DialogTask extends AbstractEmptyObservableTask {
 	          context="nogui")
 	public String tabID = null;
 
-	@Tunable (description="Show debug tools", 
-	          longDescription="Whether or not to show the web programmer debugging tools",
-	          exampleStringValue="false",
-	          context="nogui")
+	// @Tunable (description="Show debug tools", 
+	//           longDescription="Whether or not to show the web programmer debugging tools",
+	//           exampleStringValue="false",
+	//           context="nogui")
 	public boolean debug = false;
 
 	final CyBrowserManager manager;

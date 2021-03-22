@@ -77,6 +77,7 @@ import org.apache.http.impl.client.HttpClients;
 
 import org.cytoscape.service.util.CyServiceRegistrar;
 import org.cytoscape.util.swing.IconManager;
+import org.cytoscape.util.swing.OpenBrowser;
 
 import org.cytoscape.application.CyUserLog;
 import org.apache.log4j.Logger;
@@ -206,6 +207,12 @@ public class SwingPanel extends JPanel {
 					loadURL(txtURL.getText());
 				}
 			};
+			ActionListener open = new ActionListener() {
+				@Override 
+				public void actionPerformed(ActionEvent e) {
+					openNativeBrowser(txtURL.getText());
+				}
+			};
 	 
 			txtURL.addActionListener(al);
 
@@ -232,6 +239,11 @@ public class SwingPanel extends JPanel {
 					JButton btnBug = createBugButton();
 					rightButtonPanel.add(btnBug);
 				}
+				JButton btnOpen = new JButton("Open");
+        btnOpen.setToolTipText("Open in native browser");
+				btnOpen.addActionListener(open);
+				rightButtonPanel.add(btnOpen);
+
 				topBar.add(rightButtonPanel, BorderLayout.EAST);
 			}
  
@@ -376,6 +388,22 @@ public class SwingPanel extends JPanel {
 					}
 				});
  
+				engine.getLoadWorker().exceptionProperty().addListener(new ChangeListener<Throwable>() {
+          @Override
+          public void changed(ObservableValue<? extends Throwable> ov, Throwable t, Throwable t1) {
+            System.out.println("webEngine exception: "+t1.getMessage());
+          }
+        });
+
+        /*
+        com.sun.javafx.webkit.WebConsoleListener.setDefaultListener(new com.sun.javafx.webkit.WebConsoleListener(){
+          @Override
+          public void messageAdded(WebView webView, String message, int lineNumber, String sourceId) {
+            System.out.println("WebConsoleListener Console: [" + sourceId + ":" + lineNumber + "] " + message);
+          }
+        });
+        */
+
 				engine.getLoadWorker().workDoneProperty().addListener(new ChangeListener<Number>() {
 					@Override
 					public void changed(ObservableValue<? extends Number> observableValue, 
@@ -683,6 +711,21 @@ public class SwingPanel extends JPanel {
     clipboard.setContent(content);
 	}
 
+	private void openLinkAction() {
+    String url = anchor.toString();
+    openNativeBrowser(url);
+  }
+
+  private void openNativeBrowser(String url) {
+    SwingUtilities.invokeLater(new Runnable() {
+      @Override 
+      public void run() {
+        OpenBrowser nativeBrowser = registrar.getService(OpenBrowser.class);
+        nativeBrowser.openURL(url, false);
+      }
+    });
+  }
+
 	private void downloadAction() {
 		String targ = anchor.toString();
 		downloadAction(targ, null, true);
@@ -768,6 +811,10 @@ public class SwingPanel extends JPanel {
 		// Link context menu
 		ContextMenu hrefContextMenu = new ContextMenu();
 		{
+			MenuItem openLink = new MenuItem("Open link in native browser");
+			openLink.setOnAction(e -> openLinkAction());
+			hrefContextMenu.getItems().add(openLink);
+ 
 			MenuItem copyLink = new MenuItem("Copy link location");
 			copyLink.setOnAction(e -> copyLinkAction());
 			hrefContextMenu.getItems().add(copyLink);
@@ -798,6 +845,10 @@ public class SwingPanel extends JPanel {
 		// Selection context menu
 		ContextMenu selectedAnchorContextMenu = new ContextMenu();
 		{
+			MenuItem openLink = new MenuItem("Open link in native browser");
+			openLink.setOnAction(e -> openLinkAction());
+			hrefContextMenu.getItems().add(openLink);
+
 			MenuItem copyLink = new MenuItem("Copy link location");
 			copyLink.setOnAction(e -> copyLinkAction());
 			selectedAnchorContextMenu.getItems().add(copyLink);
