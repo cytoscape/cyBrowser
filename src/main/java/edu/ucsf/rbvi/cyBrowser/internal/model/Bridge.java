@@ -76,6 +76,13 @@ public class Bridge implements TaskObserver {
 		}
 	}
 
+  // Hook to pick up console.log messages from javascript.  Note
+  // that this can be overridden by users
+  public void log(String text) {
+    // System.out.println("Browser console.log: "+text);
+    logger.info("cyBrower: "+text);
+  }
+
 	public void executeCommand(String command) {
 		TaskObserver observer = this;
 		// System.out.println("command = "+command);

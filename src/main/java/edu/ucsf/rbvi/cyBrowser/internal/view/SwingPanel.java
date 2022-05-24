@@ -431,6 +431,8 @@ public class SwingPanel extends JPanel {
 							// In Javascript access: window.cybrowser...
 							jsBridge = new Bridge(engine, registrar, parent);
 							jsobj.setMember("cybrowser", jsBridge);
+              // System.out.println("Setting console.log to our log");
+              engine.executeScript("console.log = function(message) { cybrowser.log(message); }");
 
 							// Now set up a listener for link click events
 							EventListener listener = new EventListener() {
