@@ -122,9 +122,9 @@ public class CyActivator extends AbstractCyActivator {
 			Properties props = new Properties();
 			props.setProperty(COMMAND_NAMESPACE, "cybrowser");
 			props.setProperty(COMMAND, "show");
-			props.setProperty(COMMAND_DESCRIPTION, "Launch an HTML browser in the Results Panel");
+			props.setProperty(COMMAND_DESCRIPTION, "Launch an HTML browser in a panel");
 			props.setProperty(COMMAND_LONG_DESCRIPTION, 
-			                  "Launch Cytoscape's internal web browser in a pane in the Result Panel.  "+
+			                  "Launch Cytoscape's internal web browser in a pane in a panel.  "+
 			                  "Provide an ``id`` for the window if you " +
 			                  "want subsequent control of the window via ``cybrowser hide``");
 			props.setProperty(COMMAND_SUPPORTS_JSON, "true");

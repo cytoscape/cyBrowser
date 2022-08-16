@@ -13,6 +13,7 @@ import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.ProvidesTitle;
 import org.cytoscape.work.TaskMonitor;
 import org.cytoscape.work.Tunable;
+import org.cytoscape.work.util.ListSingleSelection;
 
 
 import edu.ucsf.rbvi.cyBrowser.internal.model.CyBrowser;
@@ -47,11 +48,18 @@ public class ShowBrowserTask extends AbstractEmptyObservableTask {
 	          context="nogui")
 	public String id = null;
 
+	@Tunable (description="Browser panel", 
+	          longDescription="The panel to put this browser into",
+	          exampleStringValue="EAST (Result)",
+	          context="nogui")
+	public ListSingleSelection<String> panel = new ListSingleSelection<String>("Result","Table","Command","EAST","SOUTH","WEST");
+
 	final CyBrowserManager manager;
   final CytoPanel cytoPanel = null;
 
 	public ShowBrowserTask(CyBrowserManager manager) {
 		this.manager = manager;
+    panel.setSelectedValue("Result");
 	}
 
 	public void run(TaskMonitor monitor) {
@@ -64,23 +72,34 @@ public class ShowBrowserTask extends AbstractEmptyObservableTask {
 					else
 						id = manager.makeId();
 				}
+        // long startTime = System.currentTimeMillis();
 				ResultsPanelBrowser browser;
+        // System.out.println("Creating browser");
 				if (br != null && br instanceof ResultsPanelBrowser)
 					browser = (ResultsPanelBrowser) br;
 				else if (br != null && br instanceof SwingBrowser) {
-					SwingPanel panel = br.getPanel(id);
+					SwingPanel swingPanel = br.getPanel(id);
 					((SwingBrowser)br).setVisible(false);
-					browser = new ResultsPanelBrowser(manager, id, panel, title);
+					browser = new ResultsPanelBrowser(manager, id, swingPanel, title, getCytoPanel());
 				} else {
-					browser = new ResultsPanelBrowser(manager, id, title);
+					browser = new ResultsPanelBrowser(manager, id, null, title, getCytoPanel());
 				}
+        // long time = System.currentTimeMillis();
+        // System.out.println("Creating browser -- done ("+(time-startTime)+")");
 
 				if (url != null && url.length() > 3) {
 					browser.loadURL(url);
 				} else if (text != null) {
+          // System.out.println("Loading text");
 					browser.loadText(text);
 				}
+        // long time2 = System.currentTimeMillis();
+        // System.out.println("Loading text -- done ("+(time2-time)+")");
+
+        // System.out.println("Registering browser");
 				manager.registerCytoPanel(browser);
+        // long time3 = System.currentTimeMillis();
+        // System.out.println("Registering browser -- done ("+(time3-time2)+")");
 				br = (CyBrowser) browser;
 
 				manager.addBrowser(br, id);
@@ -88,6 +107,18 @@ public class ShowBrowserTask extends AbstractEmptyObservableTask {
 		});
 
 	}
+
+  private CytoPanelName getCytoPanel() {
+    String p = panel.getSelectedValue();
+    if (p.equalsIgnoreCase("Result") || p.equalsIgnoreCase("EAST"))
+      return CytoPanelName.EAST;
+    if (p.equalsIgnoreCase("Table") || p.equalsIgnoreCase("SOUTH"))
+      return CytoPanelName.SOUTH;
+    if (p.equalsIgnoreCase("Command") || p.equalsIgnoreCase("WEST"))
+      return CytoPanelName.WEST;
+
+    return CytoPanelName.EAST;
+  }
 
 	@ProvidesTitle
 	public String getTitle() {

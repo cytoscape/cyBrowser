@@ -19,10 +19,12 @@ public class ResultsPanelBrowser implements CytoPanelComponent2, CyBrowser {
 	private final SwingPanel panel;
 	private final String title;
 	private final String id;
+  private final CytoPanelName cytoPanel;
 
-	public ResultsPanelBrowser(CyBrowserManager manager, String id, SwingPanel reuse, String title) {
+	public ResultsPanelBrowser(CyBrowserManager manager, String id, SwingPanel reuse, String title, CytoPanelName cytoPanel) {
 		super();
 		this.manager = manager;
+    this.cytoPanel = cytoPanel;
 		panel = new SwingPanel(manager, id, null, reuse, false, false);
 		this.id = id;
 
@@ -30,20 +32,15 @@ public class ResultsPanelBrowser implements CytoPanelComponent2, CyBrowser {
 			this.title = title;
 		else
 			this.title = "CyBrowser";
-	}
- 
-	public ResultsPanelBrowser(CyBrowserManager manager, String id, String title) {
-		super();
-		this.manager = manager;
-		panel = new SwingPanel(manager, id, null, null, false, false);
-		this.id = id;
+  }
 
-		if (title != null)
-			this.title = title;
-		else
-			this.title = "CyBrowser";
-		
+	public ResultsPanelBrowser(CyBrowserManager manager, String id, SwingPanel reuse, String title) {
+    this(manager, id, reuse, title, CytoPanelName.EAST);
 	}
+
+	public ResultsPanelBrowser(CyBrowserManager manager, String id, String title) {
+    this(manager, id, null, title, CytoPanelName.EAST);
+  }
 
 	public SwingPanel getPanel(String id) { return panel; }
 
@@ -94,5 +91,5 @@ public class ResultsPanelBrowser implements CytoPanelComponent2, CyBrowser {
 	public String getTitle(String id) { return title; }
 
 	@Override
-	public CytoPanelName getCytoPanelName() { return CytoPanelName.EAST; }
+	public CytoPanelName getCytoPanelName() { return cytoPanel; }
 }
