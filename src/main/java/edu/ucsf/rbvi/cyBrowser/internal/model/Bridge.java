@@ -26,8 +26,7 @@ import org.apache.log4j.Logger;
 
 import edu.ucsf.rbvi.cyBrowser.internal.view.SwingBrowser;
 
-public class Bridge implements TaskObserver {
-	private String callbackMethod = null;
+public class Bridge {
 	private final WebEngine engine;
 	private final CommandExecutorTaskFactory commandTaskFactory;
 	private final StringToModel stringToModel;
@@ -50,32 +49,6 @@ public class Bridge implements TaskObserver {
 		this.registrar = registrar;
 	}
 
-	@Override
-	public void allFinished(FinishStatus finishStatus) {
-		// System.out.println("All tasks finished");
-		callbackMethod = null;
-	}
-
-	@Override
-	public void taskFinished(ObservableTask task) {
-		String results = task.getResults(JSONResult.class).getJSON();
-		// System.out.println("Task "+task+" finished: "+results);
-		logger.info("CyBrowser: results: '"+results+"'");
-		if (callbackMethod != null) {
-			String cb = callbackMethod; // 
-			callbackMethod = null;
-			Platform.runLater(new Runnable() {
-				@Override public void run() {
-					System.out.println("Executing: "+cb+"(`"+results+"`)");
-					// We need to use templated strings to preserve newlines
-					// engine.executeScript(cb+"(`"+results+"`)");
-					JSObject jsobj = (JSObject) engine.executeScript("window");
-					jsobj.call(cb, results);
-				}
-			});
-		}
-	}
-
   // Hook to pick up console.log messages from javascript.  Note
   // that this can be overridden by users
   public void log(String text) {
@@ -83,8 +56,8 @@ public class Bridge implements TaskObserver {
     logger.info("cyBrower: "+text);
   }
 
-	public void executeCommand(String command) {
-		TaskObserver observer = this;
+	public void executeCommand(String command, String callbackMethod) {
+		TaskObserver observer = new CallbackObserver(callbackMethod);
 		// System.out.println("command = "+command);
 		logger.info("CyBrowser: executing command: '"+command+"'");
 		SwingUtilities.invokeLater(new Runnable() {
@@ -102,15 +75,19 @@ public class Bridge implements TaskObserver {
 
 	public void executeCyCommand(String command) {
 		logger.info("Bridge: executing command: '"+command+"'");
-		executeCommand(command);
-		callbackMethod = null;
+		executeCommand(command, null);
 	}
 
 	public void executeCyCommandWithResults(String command, String callback) {
+		// System.out.println("Bridge: executing command: '"+command+"' with results");
 		logger.info("Bridge: executing command: '"+command+"' with results");
-		executeCommand(command);
-		callbackMethod = callback;
+		executeCommand(command, callback);
 	}
+
+  public void cyLog(String message) {
+		System.out.println(message);
+    logger.info(message);
+  }
 
 	public void downloadFile(String href, String fileName) {
 			Downloader.download(registrar, parent, href, fileName, true);
@@ -160,5 +137,38 @@ public class Bridge implements TaskObserver {
 			registrar.unregisterAllServices(l);
 		}
 		listeners.clear();
+	}
+
+  class CallbackObserver implements TaskObserver {
+
+    String callbackMethod;
+
+    public CallbackObserver(String callbackMethod) {
+      this.callbackMethod = callbackMethod;
+    }
+
+    @Override
+    public void allFinished(FinishStatus finishStatus) {
+      // System.out.println("All tasks finished");
+    }
+
+    @Override
+    public void taskFinished(ObservableTask task) {
+      String results = task.getResults(JSONResult.class).getJSON();
+      // System.out.println("Task "+task+" finished: "+results);
+      // logger.info("CyBrowser: results: '"+results+"'");
+      if (this.callbackMethod != null) {
+        String cb = this.callbackMethod; // 
+        Platform.runLater(new Runnable() {
+          @Override public void run() {
+            // System.out.println("Executing: "+cb+"(`"+results+"`)");
+            // We need to use templated strings to preserve newlines
+            // engine.executeScript(cb+"(`"+results+"`)");
+            JSObject jsobj = (JSObject) engine.executeScript("window");
+            jsobj.call(cb, results);
+          }
+        });
+      }
+    }
 	}
 }

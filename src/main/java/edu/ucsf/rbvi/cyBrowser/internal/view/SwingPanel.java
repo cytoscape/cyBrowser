@@ -427,6 +427,8 @@ public class SwingPanel extends JPanel {
 							// OK, set up our callback
 							JSObject jsobj = (JSObject) engine.executeScript("window");
 
+              System.out.println("Creating new bridge");
+
 							// Set member for 'window' object
 							// In Javascript access: window.cybrowser...
 							jsBridge = new Bridge(engine, registrar, parent);
@@ -480,7 +482,7 @@ public class SwingPanel extends JPanel {
 												ev.stopPropagation();
 											} else if (href != null && href.startsWith("cycmd:")) {
 												String command = href.substring("cycmd:".length());
-												jsBridge.executeCommand(command);
+												jsBridge.executeCommand(command, null);
 												ev.preventDefault();
 												ev.stopPropagation();
 											} else if (href != null && target != null && target.equalsIgnoreCase("_blank")) {
