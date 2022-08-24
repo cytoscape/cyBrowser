@@ -22,14 +22,13 @@ public class CyBrowserManager {
 
 	CyServiceRegistrar registrar;
   CytoPanel cytoPanel = null;
+	CytoPanelName cytoPanelName = null;
 	Map<String, CyBrowser> idMap;
 	String version = "unknown";
 	public static int browserCount = 1;
 
 	public CyBrowserManager(CyServiceRegistrar registrar) {
 		this.registrar = registrar;
-		CySwingApplication swingApplication = registrar.getService(CySwingApplication.class);
-		this.cytoPanel = swingApplication.getCytoPanel(CytoPanelName.EAST);
 		idMap = new HashMap<>();
 	}
 
@@ -41,6 +40,9 @@ public class CyBrowserManager {
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
 				registrar.registerService(browser, CytoPanelComponent.class, new Properties());
+				CySwingApplication swingApplication = registrar.getService(CySwingApplication.class);
+				cytoPanelName = browser.getCytoPanelName();
+				cytoPanel = swingApplication.getCytoPanel(cytoPanelName);
 				cytoPanel.setState(CytoPanelState.DOCK);
 				int index = cytoPanel.indexOfComponent(browser.getComponent());
 				cytoPanel.setSelectedIndex(index);
@@ -51,6 +53,9 @@ public class CyBrowserManager {
 	public void unregisterCytoPanel(ResultsPanelBrowser browser) {
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
+				CySwingApplication swingApplication = registrar.getService(CySwingApplication.class);
+				cytoPanelName = browser.getCytoPanelName();
+				cytoPanel = swingApplication.getCytoPanel(cytoPanelName);
 				if (browser == null) {
 					for (CyBrowser br: idMap.values()) {
 						if (br instanceof ResultsPanelBrowser)
@@ -120,7 +125,7 @@ public class CyBrowserManager {
 					((SwingBrowser)browser).dispose();
 			}
 		});
-			
+
 		removeBrowser(id);
 	}
 
