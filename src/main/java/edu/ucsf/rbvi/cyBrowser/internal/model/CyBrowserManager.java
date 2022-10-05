@@ -36,7 +36,7 @@ public class CyBrowserManager {
 		return registrar;
 	}
 
-	public void registerCytoPanel(ResultsPanelBrowser browser) {
+	public void registerCytoPanel(ResultsPanelBrowser browser, Boolean focus) {
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
 				registrar.registerService(browser, CytoPanelComponent.class, new Properties());
@@ -44,8 +44,10 @@ public class CyBrowserManager {
 				cytoPanelName = browser.getCytoPanelName();
 				cytoPanel = swingApplication.getCytoPanel(cytoPanelName);
 				cytoPanel.setState(CytoPanelState.DOCK);
+				if (focus) {
 				int index = cytoPanel.indexOfComponent(browser.getComponent());
 				cytoPanel.setSelectedIndex(index);
+				}
 			}
 		});
 	}

@@ -767,7 +767,7 @@ public class SwingPanel extends JPanel {
 		} else {
 			// Open a new tab
 			browser = new ResultsPanelBrowser(manager, newId, title);
-			manager.registerCytoPanel((ResultsPanelBrowser)browser);
+			manager.registerCytoPanel((ResultsPanelBrowser)browser, true);
 		}
 		manager.addBrowser(browser, newId);
 

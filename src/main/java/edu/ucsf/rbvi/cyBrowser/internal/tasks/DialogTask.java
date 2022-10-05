@@ -23,50 +23,50 @@ import edu.ucsf.rbvi.cyBrowser.internal.view.SwingPanel;
 
 public class DialogTask extends AbstractEmptyObservableTask {
 
-	@Tunable (description="URL", 
+	@Tunable (description="URL",
 	          longDescription="The URL the browser should load",
 	          exampleStringValue="http://www.cytoscape.org",
 	          gravity=1.0)
 	public String url;
 
-	@Tunable (description="Open in results panel?", 
+	@Tunable (description="Open in results panel?",
 	          longDescription="If true, open the browser in the results panel",
 	          exampleStringValue="true",
 	          gravity=2.0,
 						context="gui")
 	public boolean resultsPanel = false;
 
-	@Tunable (description="HTML Text", 
+	@Tunable (description="HTML Text",
 	          longDescription="HTML text to initially load into the browser",
 	          exampleStringValue="<HTML><HEAD><TITLE>Hello</TITLE></HEAD><BODY>Hello, world!</BODY></HTML>",
 	          context="nogui")
 	public String text;
 
-	@Tunable (description="Window Title", 
+	@Tunable (description="Window Title",
 	          longDescription="Text to be shown in the title bar of the browser window",
 	          exampleStringValue="Cytoscape Home Page",
 	          context="nogui")
 	public String title = null;
 
-	@Tunable (description="Window ID", 
+	@Tunable (description="Window ID",
 	          longDescription="The ID for this browser window.  Use this with ``cybrowser hide`` to hide the browser",
 	          exampleStringValue="Window 1",
 	          context="nogui")
 	public String id = null;
 
-	@Tunable (description="Open in new tab", 
+	@Tunable (description="Open in new tab",
 	          longDescription="If the browser with the specified ID already exists, just add a new tab",
 	          exampleStringValue="false",
 	          context="nogui")
 	public boolean newTab = false;
 
-	@Tunable (description="Tab ID", 
+	@Tunable (description="Tab ID",
 	          longDescription="If ```newTab``` is ``true``, then use the tab with the specified ID",
 	          exampleStringValue="Tab 1",
 	          context="nogui")
 	public String tabID = null;
 
-	// @Tunable (description="Show debug tools", 
+	// @Tunable (description="Show debug tools",
 	//           longDescription="Whether or not to show the web programmer debugging tools",
 	//           exampleStringValue="false",
 	//           context="nogui")
@@ -86,7 +86,7 @@ public class DialogTask extends AbstractEmptyObservableTask {
 				SwingBrowser browser = null;
 
 				if (id == null) {
-					if (title != null) 
+					if (title != null)
 						id = title;
 					else
 						id = manager.makeId();
@@ -100,7 +100,7 @@ public class DialogTask extends AbstractEmptyObservableTask {
 					browser = new SwingBrowser(manager, id, panel, title, debug);
 				} else if (br == null && resultsPanel) {
 					ResultsPanelBrowser rpbr = new ResultsPanelBrowser(manager, id, title);
-					manager.registerCytoPanel(rpbr);
+					manager.registerCytoPanel(rpbr, true);
 					br = (CyBrowser)rpbr;
 				} else
 					browser = new SwingBrowser(manager, id, title, debug);
