@@ -32,6 +32,7 @@ import org.osgi.framework.ServiceReference;
 
 import edu.ucsf.rbvi.cyBrowser.internal.model.CyBrowserManager;
 import edu.ucsf.rbvi.cyBrowser.internal.tasks.CloseBrowserTaskFactory;
+import edu.ucsf.rbvi.cyBrowser.internal.tasks.NativeBrowserTaskFactory;
 import edu.ucsf.rbvi.cyBrowser.internal.tasks.DialogTaskFactory;
 import edu.ucsf.rbvi.cyBrowser.internal.tasks.HideBrowserTaskFactory;
 import edu.ucsf.rbvi.cyBrowser.internal.tasks.ListBrowsersTaskFactory;
@@ -39,9 +40,10 @@ import edu.ucsf.rbvi.cyBrowser.internal.tasks.SendTaskFactory;
 import edu.ucsf.rbvi.cyBrowser.internal.tasks.ShowBrowserTaskFactory;
 import edu.ucsf.rbvi.cyBrowser.internal.tasks.VersionTaskFactory;
 import edu.ucsf.rbvi.cyBrowser.internal.util.IconUtil;
+import org.cytoscape.util.swing.OpenBrowser;
 
 public class CyActivator extends AbstractCyActivator {
-	
+
 	private static float LARGE_ICON_FONT_SIZE = 28f;
 	private static int LARGE_ICON_SIZE = 32;
 
@@ -70,10 +72,10 @@ public class CyActivator extends AbstractCyActivator {
 
 		IconManager iconManager = getService(bc, IconManager.class);
 		Font iconFont = IconUtil.getIconFont(LARGE_ICON_FONT_SIZE);
-		
+
     {
 			DialogTaskFactory startBrowser = new DialogTaskFactory(manager, "http://tutorials.cytoscape.org/");
-			
+
 			Icon icon = new TextIcon(
 					IconUtil.BROWSER_ICON,
 					iconFont,
@@ -83,7 +85,7 @@ public class CyActivator extends AbstractCyActivator {
 			);
 			String iconId = "rbvi::OPEN_CYBROWSER";
 			iconManager.addIcon(iconId, icon);
-			
+
 			Properties props = new Properties();
 			props.setProperty(IN_MENU_BAR, "false");
 			props.setProperty(IN_TOOL_BAR, "true");
@@ -96,7 +98,7 @@ public class CyActivator extends AbstractCyActivator {
 
 		{
 			DialogTaskFactory startBrowser = new DialogTaskFactory(manager);
-			
+
 			Properties props = new Properties();
 			props.setProperty(PREFERRED_MENU, "Tools");
 			props.setProperty(TITLE, "Open web page");
@@ -108,7 +110,7 @@ public class CyActivator extends AbstractCyActivator {
 			props.setProperty(COMMAND_NAMESPACE, "cybrowser");
 			props.setProperty(COMMAND, "dialog");
 			props.setProperty(COMMAND_DESCRIPTION, "Launch an HTML browser in a separate window");
-			props.setProperty(COMMAND_LONG_DESCRIPTION, 
+			props.setProperty(COMMAND_LONG_DESCRIPTION,
 			                  "Launch Cytoscape's internal web browser in a separate window.  " +
 			                  "Provide an ``id`` for the window if you " +
 			                  "want subsequent control of the window via ``cybrowser hide``");
@@ -116,14 +118,14 @@ public class CyActivator extends AbstractCyActivator {
 			props.setProperty(COMMAND_EXAMPLE_JSON, "{\"id\":\"my window\"}");
 			registerService(bc, startBrowser, TaskFactory.class, props);
 		}
-		
+
 		{
 			ShowBrowserTaskFactory startBrowser = new ShowBrowserTaskFactory(manager);
 			Properties props = new Properties();
 			props.setProperty(COMMAND_NAMESPACE, "cybrowser");
 			props.setProperty(COMMAND, "show");
 			props.setProperty(COMMAND_DESCRIPTION, "Launch an HTML browser in a panel");
-			props.setProperty(COMMAND_LONG_DESCRIPTION, 
+			props.setProperty(COMMAND_LONG_DESCRIPTION,
 			                  "Launch Cytoscape's internal web browser in a pane in a panel.  "+
 			                  "Provide an ``id`` for the window if you " +
 			                  "want subsequent control of the window via ``cybrowser hide``");
@@ -131,14 +133,14 @@ public class CyActivator extends AbstractCyActivator {
 			props.setProperty(COMMAND_EXAMPLE_JSON, "{\"id\":\"my window\"}");
 			registerService(bc, startBrowser, TaskFactory.class, props);
 		}
-		
+
 		{
 			CloseBrowserTaskFactory closeBrowser = new CloseBrowserTaskFactory(manager);
 			Properties props = new Properties();
 			props.setProperty(COMMAND_NAMESPACE, "cybrowser");
 			props.setProperty(COMMAND, "close");
 			props.setProperty(COMMAND_DESCRIPTION, "Close an open browser, removing it's id");
-			props.setProperty(COMMAND_LONG_DESCRIPTION, 
+			props.setProperty(COMMAND_LONG_DESCRIPTION,
 			                  "Close an internal web browser and remove all content.  "+
 			                  "Provide an ``id`` for the browser you " +
 			                  "want to close.");
@@ -146,14 +148,14 @@ public class CyActivator extends AbstractCyActivator {
 			props.setProperty(COMMAND_EXAMPLE_JSON, "{\"id\":\"my window\"}");
 			registerService(bc, closeBrowser, TaskFactory.class, props);
 		}
-		
+
 		{
 			ListBrowsersTaskFactory listBrowsers = new ListBrowsersTaskFactory(manager);
 			Properties props = new Properties();
 			props.setProperty(COMMAND_NAMESPACE, "cybrowser");
 			props.setProperty(COMMAND, "list");
 			props.setProperty(COMMAND_DESCRIPTION, "List all open browsers");
-			props.setProperty(COMMAND_LONG_DESCRIPTION, 
+			props.setProperty(COMMAND_LONG_DESCRIPTION,
 			                  "List all browsers that are currently open, whether as "+
 			                  "a dialog or in the results panel.");
 			props.setProperty(COMMAND_SUPPORTS_JSON, "true");
@@ -173,14 +175,14 @@ public class CyActivator extends AbstractCyActivator {
 			props.setProperty(COMMAND_EXAMPLE_JSON, "{}");
 			registerService(bc, hideBrowser, TaskFactory.class, props);
 		}
-		
+
 		{
 			SendTaskFactory sendBrowser = new SendTaskFactory(manager);
 			Properties props = new Properties();
 			props.setProperty(COMMAND_NAMESPACE, "cybrowser");
 			props.setProperty(COMMAND, "send");
 			props.setProperty(COMMAND_DESCRIPTION, "Send (execute) javascript commands to a browser");
-			props.setProperty(COMMAND_LONG_DESCRIPTION, 
+			props.setProperty(COMMAND_LONG_DESCRIPTION,
 			                  "Send the text to the browser indicated by the ``id`` and return "+
 												"the response, if any.  Note that the JSON ``result`` field could either "+
 												"be a bare string or JSON formatted text.");
@@ -188,7 +190,7 @@ public class CyActivator extends AbstractCyActivator {
 			props.setProperty(COMMAND_EXAMPLE_JSON, "{\"browserId\":\"my window\", \"result\":[1,2,3,4]}");
 			registerService(bc, sendBrowser, TaskFactory.class, props);
 		}
-		
+
 		{
 			VersionTaskFactory versionTask = new VersionTaskFactory(version);
 			Properties props = new Properties();
@@ -200,6 +202,16 @@ public class CyActivator extends AbstractCyActivator {
 			props.setProperty(COMMAND_EXAMPLE_JSON, "{\"version\":\"1.0\"}");
 			registerService(bc, versionTask, TaskFactory.class, props);
 		}
+
+		{
+		NativeBrowserTaskFactory nativebrowser = new NativeBrowserTaskFactory(manager, registrar);
+		Properties props = new Properties();
+		props.setProperty(COMMAND_NAMESPACE, "cybrowser");
+		props.setProperty(COMMAND, "native");
+		props.setProperty(COMMAND_DESCRIPTION, "Launch an HTML browser with native browser");
+		props.setProperty(COMMAND_LONG_DESCRIPTION, "Launch an HTML browser with native browser.");
+		registerService(bc, nativebrowser, TaskFactory.class, props);
+	}
 
 	}
 
