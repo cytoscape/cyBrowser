@@ -120,7 +120,7 @@ public class CyActivator extends AbstractCyActivator {
 		}
 
 		{
-			ShowBrowserTaskFactory startBrowser = new ShowBrowserTaskFactory(manager);
+			ShowBrowserTaskFactory startBrowser = new ShowBrowserTaskFactory(manager, registrar);
 			Properties props = new Properties();
 			props.setProperty(COMMAND_NAMESPACE, "cybrowser");
 			props.setProperty(COMMAND, "show");
