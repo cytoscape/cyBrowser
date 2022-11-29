@@ -37,7 +37,7 @@ import javafx.scene.web.WebEvent;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
 import javafx.util.Callback;
-
+ 
 import java.io.ByteArrayInputStream;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
@@ -81,7 +81,7 @@ import org.cytoscape.util.swing.OpenBrowser;
 
 import org.cytoscape.application.CyUserLog;
 import org.apache.log4j.Logger;
-
+ 
 import edu.ucsf.rbvi.cyBrowser.internal.model.Bridge;
 import edu.ucsf.rbvi.cyBrowser.internal.model.CyBrowser;
 import edu.ucsf.rbvi.cyBrowser.internal.model.CyBrowserManager;
@@ -90,10 +90,10 @@ import edu.ucsf.rbvi.cyBrowser.internal.model.Downloader;
 import static javafx.concurrent.Worker.State.FAILED;
 
 public class SwingPanel extends JPanel {
-
+ 
 	protected JFXPanel jfxPanel = new JFXPanel();
 	private WebEngine engine;
-
+ 
 	private final JLabel lblStatus = new JLabel();
 
 	public static final String EVENT_TYPE_CLICK = "click";
@@ -112,6 +112,7 @@ public class SwingPanel extends JPanel {
 	private final boolean showDebug;
 	private String callbackMethod = null;
 	private String url = null;
+  private String loadedText = null; // This will contain the text if we're loading the browser from a text string
 	private boolean suppressLink = false;
 	private String title = null;
 
@@ -129,8 +130,8 @@ public class SwingPanel extends JPanel {
 	private final String id;
 
 	final Logger logger = Logger.getLogger(CyUserLog.NAME);
-
-	public SwingPanel(CyBrowserManager manager, String id, SwingBrowser parentDialog, SwingPanel reuse,
+ 
+	public SwingPanel(CyBrowserManager manager, String id, SwingBrowser parentDialog, SwingPanel reuse, 
 	                  boolean showURL, boolean showDebug) {
 		super(new BorderLayout());
 		this.manager = manager;
@@ -199,26 +200,26 @@ public class SwingPanel extends JPanel {
 			jfxPanel = reuse.jfxPanel;
 			engine = reuse.engine;
 		}
-
+ 
 		if (showURL) {
 			ActionListener al = new ActionListener() {
-				@Override
+				@Override 
 				public void actionPerformed(ActionEvent e) {
 					loadURL(txtURL.getText());
 				}
 			};
 			ActionListener open = new ActionListener() {
-				@Override
+				@Override 
 				public void actionPerformed(ActionEvent e) {
 					openNativeBrowser(txtURL.getText());
 				}
 			};
-
+	 
 			txtURL.addActionListener(al);
 
 			progressBar.setPreferredSize(new Dimension(150, 18));
 			progressBar.setStringPainted(true);
-
+  
 			JPanel topBar = new JPanel(new BorderLayout(5, 0));
 			topBar.setBorder(BorderFactory.createEmptyBorder(3, 5, 3, 5));
 			{
@@ -246,12 +247,12 @@ public class SwingPanel extends JPanel {
 
 				topBar.add(rightButtonPanel, BorderLayout.EAST);
 			}
-
+ 
 			JPanel statusBar = new JPanel(new BorderLayout(5, 0));
 			statusBar.setBorder(BorderFactory.createEmptyBorder(3, 5, 3, 5));
 			statusBar.add(lblStatus, BorderLayout.CENTER);
 			statusBar.add(progressBar, BorderLayout.EAST);
-
+	 
 			add(topBar, BorderLayout.NORTH);
 			add(statusBar, BorderLayout.SOUTH);
 		}
@@ -267,7 +268,7 @@ public class SwingPanel extends JPanel {
 				Platform.runLater(new Runnable() {
 					@Override
 					public void run() {
-						engine.executeScript("if (!document.getElementById('FirebugLite')){E = document['createElement' + 'NS'] && document.documentElement.namespaceURI;E = E ? document['createElement' + 'NS'](E, 'script') : document['createElement']('script');E['setAttribute']('id', 'FirebugLite');E['setAttribute']('src', 'https://cdnjs.cloudflare.com/ajax/libs/firebug-lite/1.4.0/firebug-lite.min.js' + '#startOpened');E['setAttribute']('FirebugLite', '4');(document['getElementsByTagName']('head')[0] || document['getElementsByTagName']('body')[0]).appendChild(E);E = new Image;E['setAttribute']('src', 'https://cdnjs.cloudflare.com/ajax/libs/firebug-lite/1.4.0/firebug-lite.min.js' + '#startOpened');}");
+						engine.executeScript("if (!document.getElementById('FirebugLite')){E = document['createElement' + 'NS'] && document.documentElement.namespaceURI;E = E ? document['createElement' + 'NS'](E, 'script') : document['createElement']('script');E['setAttribute']('id', 'FirebugLite');E['setAttribute']('src', 'https://cdnjs.cloudflare.com/ajax/libs/firebug-lite/1.4.0/firebug-lite.min.js' + '#startOpened');E['setAttribute']('FirebugLite', '4');(document['getElementsByTagName']('head')[0] || document['getElementsByTagName']('body')[0]).appendChild(E);E = new Image;E['setAttribute']('src', 'https://cdnjs.cloudflare.com/ajax/libs/firebug-lite/1.4.0/firebug-lite.min.js' + '#startOpened');}"); 
 					}
 				});
 			}
@@ -298,13 +299,13 @@ public class SwingPanel extends JPanel {
 	private String getUrlFromHistory() {
 		return engine.getHistory().getEntries().get(engine.getHistory().getCurrentIndex()).getUrl();
 	}
-
+ 
 	private void createScene() {
-
+ 
 		Platform.runLater(new Runnable() {
-			@Override
+			@Override 
 			public void run() {
-
+ 
 				WebView view = new WebView();
 				engine = view.getEngine();
 				String userAgent = engine.getUserAgent();
@@ -318,7 +319,7 @@ public class SwingPanel extends JPanel {
 					@Override
 					public void changed(ObservableValue<? extends String> observable, String oldValue, final String newValue) {
 						SwingUtilities.invokeLater(new Runnable() {
-							@Override
+							@Override 
 							public void run() {
 								title = newValue;
 								if (parent != null)
@@ -327,9 +328,9 @@ public class SwingPanel extends JPanel {
 						});
 					}
 				});
-
+ 
 				engine.setOnAlert(new EventHandler<WebEvent<String>>() {
-					@Override
+					@Override 
 					public void handle(final WebEvent<String> event) {
 						Dialog<Void> alert = new Dialog<>();
 						alert.setTitle("CyBrowser Alert");
@@ -344,9 +345,9 @@ public class SwingPanel extends JPanel {
 						alert.showAndWait();
 					}
 				});
-
+ 
 				engine.setConfirmHandler(new Callback<String,Boolean>() {
-					@Override
+					@Override 
 					public Boolean call(String message) {
 						Dialog<ButtonType> confirm = new Dialog<>();
 						confirm.setTitle("CyBrowser Confirmation");
@@ -363,31 +364,30 @@ public class SwingPanel extends JPanel {
 				});
 
 				engine.setOnStatusChanged(new EventHandler<WebEvent<String>>() {
-					@Override
+					@Override 
 					public void handle(final WebEvent<String> event) {
 						SwingUtilities.invokeLater(new Runnable() {
-							@Override
+							@Override 
 							public void run() {
 								lblStatus.setText(event.getData());
 							}
 						});
 					}
 				});
-
+ 
 				engine.locationProperty().addListener(new ChangeListener<String>() {
 					@Override
-					public void changed(ObservableValue<? extends String> ov,
+					public void changed(ObservableValue<? extends String> ov, 
 					                    String oldValue, final String newValue) {
-						// System.out.println("location changed");
 						SwingUtilities.invokeLater(new Runnable() {
-							@Override
+							@Override 
 							public void run() {
 								txtURL.setText(newValue);
 							}
 						});
 					}
 				});
-
+ 
 				engine.getLoadWorker().exceptionProperty().addListener(new ChangeListener<Throwable>() {
           @Override
           public void changed(ObservableValue<? extends Throwable> ov, Throwable t, Throwable t1) {
@@ -406,10 +406,10 @@ public class SwingPanel extends JPanel {
 
 				engine.getLoadWorker().workDoneProperty().addListener(new ChangeListener<Number>() {
 					@Override
-					public void changed(ObservableValue<? extends Number> observableValue,
+					public void changed(ObservableValue<? extends Number> observableValue, 
 					                    Number oldValue, final Number newValue) {
 						SwingUtilities.invokeLater(new Runnable() {
-							@Override
+							@Override 
 							public void run() {
 								progressBar.setValue(newValue.intValue());
 							}
@@ -426,8 +426,6 @@ public class SwingPanel extends JPanel {
 						if (newState == Worker.State.SUCCEEDED) {
 							// OK, set up our callback
 							JSObject jsobj = (JSObject) engine.executeScript("window");
-
-              //System.out.println("Creating new bridge");
 
 							// Set member for 'window' object
 							// In Javascript access: window.cybrowser...
@@ -471,9 +469,9 @@ public class SwingPanel extends JPanel {
 													target = pElement.getAttribute("target");
 													href = pElement.toString();
 												}
-											}
+											} 
 
-											if (download == null || download.length() < 1)
+											if (download == null || download.length() < 1) 
 												download = null;
 
 											if (href != null && haveDownload) {
@@ -590,7 +588,7 @@ public class SwingPanel extends JPanel {
 				addListenersToAnchors(element.getContentDocument(), listener);
 			}
 		}
-
+		
 		{
 			NodeList nodeList = doc.getElementsByTagName("iframe");
 			for (int i = 0; i < nodeList.getLength(); i++) {
@@ -639,12 +637,13 @@ public class SwingPanel extends JPanel {
 		}
 		*/
 	}
-
+ 
 	public void loadText(final String text) {
 		Platform.runLater(new Runnable() {
-			@Override
+			@Override 
 			public void run() {
 				url = null;
+        loadedText = text;
 				engine.loadContent(text);
 				// Clear Cytoscape listeners?
 				if (jsBridge != null)
@@ -655,8 +654,10 @@ public class SwingPanel extends JPanel {
 
 	public void loadURL(final String urlToLoad) {
 		Platform.runLater(new Runnable() {
-			@Override
+			@Override 
 			public void run() {
+        // Clear the text string (if there is one)
+        loadedText = null;
 				if (urlToLoad == null) {
 					engine.load(null);
 					if (jsBridge != null)
@@ -665,7 +666,7 @@ public class SwingPanel extends JPanel {
 				}
 
 				String tmp = toURL(urlToLoad);
-
+ 
 				if (tmp == null) {
 					tmp = toURL("http://" + urlToLoad);
 				}
@@ -722,7 +723,7 @@ public class SwingPanel extends JPanel {
 
   private void openNativeBrowser(String url) {
     SwingUtilities.invokeLater(new Runnable() {
-      @Override
+      @Override 
       public void run() {
         OpenBrowser nativeBrowser = registrar.getService(OpenBrowser.class);
         nativeBrowser.openURL(url, false);
@@ -784,7 +785,16 @@ public class SwingPanel extends JPanel {
 	}
 
 	private void reloadAction() {
+    // System.out.println("Engine reload");
 		engine.reload();
+
+    // If we actually loaded this from text, we need to now reload that text
+    if (url == null && loadedText != null) {
+      engine.loadContent(loadedText);
+			// Clear Cytoscape listeners?
+			if (jsBridge != null)
+				jsBridge.clearListeners();
+    }
 	}
 
 
@@ -818,7 +828,7 @@ public class SwingPanel extends JPanel {
 			MenuItem openLink = new MenuItem("Open link in native browser");
 			openLink.setOnAction(e -> openLinkAction());
 			hrefContextMenu.getItems().add(openLink);
-
+ 
 			MenuItem copyLink = new MenuItem("Copy link location");
 			copyLink.setOnAction(e -> copyLinkAction());
 			hrefContextMenu.getItems().add(copyLink);
@@ -851,7 +861,7 @@ public class SwingPanel extends JPanel {
 		{
 			MenuItem openLink = new MenuItem("Open link in native browser");
 			openLink.setOnAction(e -> openLinkAction());
-			hrefContextMenu.getItems().add(openLink);
+			selectedAnchorContextMenu.getItems().add(openLink);
 
 			MenuItem copyLink = new MenuItem("Copy link location");
 			copyLink.setOnAction(e -> copyLinkAction());
@@ -877,7 +887,7 @@ public class SwingPanel extends JPanel {
 			double x = e.getX();
 			double y = e.getY();
 
-			if (e.getButton() == MouseButton.SECONDARY ||
+			if (e.getButton() == MouseButton.SECONDARY || 
 			    (e.isControlDown() && e.getButton() == MouseButton.PRIMARY)) {
 
 				// FIXME
@@ -907,9 +917,9 @@ public class SwingPanel extends JPanel {
 				// System.out.println("selection = "+selection);
 
 				// Figure out which context menu to display
-				if (anchor != null && selection != null && selection.length() > 0) {
+				if (anchor != null && anchor.toString().length() > 0 && selection != null && selection.length() > 0) {
 					selectedAnchorContextMenu.show(webView, e.getScreenX(), e.getScreenY());
-				} else if (anchor != null) {
+				} else if (anchor != null && anchor.toString().length() > 0) {
 					hrefContextMenu.show(webView, e.getScreenX(), e.getScreenY());
 					suppressLink = true;
 				} else if (selection != null && selection.length() > 0) {

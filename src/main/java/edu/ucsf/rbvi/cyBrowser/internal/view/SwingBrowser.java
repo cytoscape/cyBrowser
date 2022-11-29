@@ -190,7 +190,7 @@ public class SwingBrowser extends JFrame implements CyBrowser, ChangeListener {
 			if (tabID == null)
 				tabID = currentPanel.getId() + " "+manager.browserCount;
 
-			System.out.println("tabID = "+tabID);
+			// System.out.println("tabID = "+tabID);
 			if (!idMap.containsKey(tabID)) {
 				manager.browserCount++;
 				addTab(tabID, currentPanel.getTitle() + " "+manager.browserCount, false);
