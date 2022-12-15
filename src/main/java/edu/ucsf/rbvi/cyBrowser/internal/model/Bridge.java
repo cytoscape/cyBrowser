@@ -53,7 +53,7 @@ public class Bridge {
   // that this can be overridden by users
   public void log(String text) {
     // System.out.println("Browser console.log: "+text);
-    logger.info("cyBrower: "+text);
+    logger.info("cyBrowser: "+text);
   }
 
 	public void executeCommand(String command, String callbackMethod) {
