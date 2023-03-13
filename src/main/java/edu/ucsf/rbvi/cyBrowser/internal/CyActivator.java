@@ -74,7 +74,7 @@ public class CyActivator extends AbstractCyActivator {
 		Font iconFont = IconUtil.getIconFont(LARGE_ICON_FONT_SIZE);
 
     {
-			DialogTaskFactory startBrowser = new DialogTaskFactory(manager, "http://tutorials.cytoscape.org/");
+			DialogTaskFactory startBrowser = new DialogTaskFactory(manager, "https://cytoscape.org/welcome.html");
 
 			Icon icon = new TextIcon(
 					IconUtil.BROWSER_ICON,
@@ -92,7 +92,7 @@ public class CyActivator extends AbstractCyActivator {
 			props.setProperty(TOOL_BAR_GRAVITY, "120000000000000.0");
 			props.setProperty(LARGE_ICON_ID, iconId);
 			props.setProperty(TOOLTIP, "Cytoscape Web Browser");
-			props.setProperty(TOOLTIP_LONG_DESCRIPTION, "Open Cytoscape Web Browser.");
+			props.setProperty(TOOLTIP_LONG_DESCRIPTION, "Opens the Cytoscape tutorials website in the Cytoscape Web Browser.");
 			registerService(bc, startBrowser, TaskFactory.class, props);
 		}
 
