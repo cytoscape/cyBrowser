@@ -2,6 +2,8 @@ package edu.ucsf.rbvi.cyBrowser.internal.model;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutorService;
 
 import javafx.application.Platform;
 import javafx.scene.web.WebEngine;
@@ -60,17 +62,25 @@ public class Bridge {
 		TaskObserver observer = new CallbackObserver(callbackMethod);
 		// System.out.println("command = "+command);
 		logger.info("CyBrowser: executing command: '"+command+"'");
-		SwingUtilities.invokeLater(new Runnable() {
-			@Override
-			public void run() {
+		// SwingUtilities.invokeLater(new Runnable() {
+		Runnable runnableTask = () ->  {
 				try {
 					TaskIterator commandTasks = commandTaskFactory.createTaskIterator(observer, command);
 					taskManager.execute(commandTasks, observer);
 				} catch (Exception e) {
 					logger.error("CyBrowser: error processing command: "+e.getMessage());
 				}
-			}
-		});
+		};
+
+		ExecutorService executorService = Executors.newSingleThreadExecutor();
+		executorService.submit(runnableTask);
+		/*
+		if (SwingUtilities.isEventDispatchThread()) {
+			runnableTask.run();
+		} else {
+			SwingUtilities.invokeLater(runnableTask);
+		}
+		*/
 	}
 
 	public void executeCyCommand(String command) {

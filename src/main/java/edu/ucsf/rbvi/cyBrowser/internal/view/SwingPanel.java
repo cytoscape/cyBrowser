@@ -522,6 +522,9 @@ public class SwingPanel extends JPanel {
 								alert.getDialogPane().setContent(text);
 								alert.showAndWait();
 						} else if (newState == Worker.State.CANCELLED) {
+              if (txtURL.getText() == null || txtURL.getText().length() == 0)
+	              return;
+
 							try{
 								URL targ = new URL(txtURL.getText());
 
